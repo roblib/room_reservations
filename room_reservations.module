@@ -1,0 +1,856 @@
+<?php
+/**
+ * @file
+ * This module creates a room reservation application.
+ *
+ * @author Bob Humphrey, Web and Applications Developer, UNCW Randall Library
+ */
+
+require_once drupal_get_path('module','room_reservations') . '/' . 'room_reservations.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function room_reservations_menu() {
+  $app_title = variable_get('room_reservations_title',
+    'Room Reservations Default');
+  $items['admin/room_reservations'] = array(
+    'title' => $app_title,
+    'description' => 'Configure room reservation options',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 0,
+  );
+  $items['admin/room_reservations/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['admin/room_reservations/settings/general'] = array(
+    'title' => 'General',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['admin/room_reservations/settings/email'] = array(
+    'title' => 'Default Email Address',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_default_email'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 20,
+  );
+  $items['admin/room_reservations/settings/reminders'] = array(
+    'title' => 'Reminders',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_reminders'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 30,
+  );
+  $items['admin/room_reservations/settings/mobile'] = array(
+    'title' => 'Mobile',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_mobile'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 40,
+  );
+  $items['admin/room_reservations/hours'] = array(
+    'title' => 'Hours',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_default_hours'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 20,
+  );
+  $items['admin/room_reservations/hours/default_hours'] = array(
+    'title' => 'Default Hours',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['admin/room_reservations/hours/daily_hours'] = array(
+    'title' => 'Daily Hours',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_daily_hours'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 20,
+  );
+  $items['admin/room_reservations/page'] = array(
+    'title' => 'Display Text',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_page'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 30,
+  );
+  $items['admin/room_reservations/sms'] = array(
+    'title' => 'SMS',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_sms'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 40,
+  );
+  $items['admin/room_reservations/sms/networks'] = array(
+    'title' => 'Wireless Carriers',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['admin/room_reservations/sms/add'] = array(
+    'title' => 'Add Carrier',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_sms_add'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 20,
+  );
+  $items['admin/room_reservations/sms/delete'] = array(
+    'title' => 'Delete Carrier',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_sms_delete'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 30,
+  );
+  $items['admin/room_reservations/messages'] = array(
+    'title' => 'Messages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_email'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 50,
+  );
+  $items['admin/room_reservations/messages/email'] = array(
+    'title' => 'Email Messages',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['admin/room_reservations/messages/text'] = array(
+    'title' => 'SMS Messages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('room_reservations_admin_settings_text'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'room_reservations.admin.inc',
+    'weight' => 20,
+  );
+  $items['room_reservations'] = array(
+    'title' => variable_get('room_reservations_title', 'Room Reservations'),
+    'page callback' => 'room_reservations',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'file' => '/controller/room_reservations_calendar.controller.inc',
+  );
+  $items['room_reservations/add'] = array(
+    'title' => 'Reservation Details',
+    'page callback' => 'room_reservations_res_add',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => '/controller/room_reservations_reservation.controller.inc',
+  );
+  $items['room_reservations/view'] = array(
+    'title' => 'Reservation Details',
+    'page callback' => 'room_reservations_res_view',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => '/controller/room_reservations_reservation.controller.inc',
+  );
+  $items['room_reservations/delete'] = array(
+    'title' => 'Reservation Details',
+    'page callback' => 'room_reservations_res_delete',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => '/controller/room_reservations_reservation.controller.inc',
+  );
+  $items['room_reservations/calendar'] = array(
+    'title' => 'Calendar',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['room_reservations/list'] = array(
+    'title' => 'My Reservations',
+    'page callback' => 'room_reservations_res_list',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 20,
+    'file' => '/controller/room_reservations.controller.inc',
+  );
+  $items['room_reservations/policies'] = array(
+    'title' => 'Policies',
+    'page callback' => 'room_reservations_policies',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 30,
+    'file' => '/controller/room_reservations.controller.inc',
+  );
+  $items['room_reservations/rooms'] = array(
+    'title' => 'Room Descriptions',
+    'page callback' => 'room_reservations_descriptions',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 40,
+    'file' => '/controller/room_reservations.controller.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_init().
+ */
+function room_reservations_init() {
+  // Add javascript.
+  drupal_add_js(drupal_get_path('module', 'room_reservations') .
+    '/room_reservations.js');
+  // Add css.
+  drupal_add_css(drupal_get_path('module', 'room_reservations') .
+    '/room_reservations.css');
+  // Prevent this module from caching.
+  if ((drupal_match_path($_GET['q'], 'room_reservations')) ||
+    (drupal_match_path($_GET['q'], 'room_reservations/*'))) {
+    $GLOBALS['conf']['cache'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_node_info().
+ */
+function room_reservations_node_info() {
+  return array(
+    'room_reservation_category' => array(
+      'name' => t('Room Reservation Category'),
+      'base' => 'room_reservations',
+      'description' => t('Category of reservable rooms.'),
+      'has_title' => TRUE,
+      'title_label' => t('Unique name'),
+      'has_body' => TRUE,
+      'body_label' => t('Displayed category name'),
+      'locked' => TRUE,
+    ),
+    'room_reservation_room' => array(
+      'name' => t('Room Reservation Room'),
+      'base' => 'room_reservations',
+      'description' => t('A reservable room.'),
+      'has_title' => TRUE,
+      'title_label' => t('Room name'),
+      'has_body' => TRUE,
+      'body_label' => t('Description'),
+      'locked' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function room_reservations_permission() {
+  return array(
+    'create room reservation category' => array(
+      'title' => t('create room reservation category'),
+      'description' => t('TODO Add a description for \'create room reservation category\''),
+    ),
+    'edit any room reservation category' => array(
+      'title' => t('edit any room reservation category'),
+      'description' => t('TODO Add a description for \'edit any room reservation category\''),
+    ),
+    'delete any room reservation category' => array(
+      'title' => t('delete any room reservation category'),
+      'description' => t('TODO Add a description for \'delete any room reservation category\''),
+    ),
+    'create room reservation room' => array(
+      'title' => t('create room reservation room'),
+      'description' => t('TODO Add a description for \'create room reservation room\''),
+    ),
+    'edit any room reservation room' => array(
+      'title' => t('edit any room reservation room'),
+      'description' => t('TODO Add a description for \'edit any room reservation room\''),
+    ),
+    'delete any room reservation room' => array(
+      'title' => t('delete any room reservation room'),
+      'description' => t('TODO Add a description for \'delete any room reservation room\''),
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function room_reservations_node_access($node, $op, $account) {
+  if ($node->type == 'room_reservation_category') {
+    switch ($op) {
+      case 'create':
+        return user_access('create room reservation category', $account);
+
+      case 'edit':
+        return user_access('edit any room reservation category', $account);
+
+      case 'delete':
+        return user_access('delete any room reservation category', $account);
+
+    }
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    switch ($op) {
+      case 'create':
+        return user_access('create room reservation room', $account);
+
+      case 'edit':
+        return user_access('edit any room reservation room', $account);
+
+      case 'delete':
+        return user_access('delete any room reservation room', $account);
+
+    }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function room_reservations_theme() {
+  return array(
+    'room_reservations' => array(
+      'variables' => array(
+        'dates',
+        'categories',
+        'hours',
+        'building_hours',
+        'building_hours_display',
+        'rooms',
+        'selected_category',
+        'user_reservations',
+      ),
+      'file' => '/view/room_reservations_calendar.view.inc',
+    ),
+    'room_reservations_descriptions' => array(
+      'variables' => array('categories, rooms'),
+      'file' => '/view/room_reservations.view.inc',
+    ),
+    'room_reservations_list' => array(
+      'variables' => array('user, base_url, user_reservations, $count'),
+      'file' => '/view/room_reservations.view.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_mail().
+ */
+function room_reservations_mail($key, &$message, $params) {
+  global $base_url;
+  $modified_base_url = str_replace('https', 'http', $base_url);
+  $headers = array(
+    'MIME-Version' => '1.0',
+    'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+    'Content-Transfer-Encoding' => '8Bit',
+    'X-Mailer' => 'Drupal',
+  );
+  switch ($key) {
+    case 'confirmation':
+      foreach ($headers as $key => $value) {
+        $message['headers'][$key] = $value;
+      }
+      $message['subject'] = _room_reservations_replace_tokens(check_plain(
+        _room_reservations_get_variable('confirmation_header_text')), $params);
+      $body = _room_reservations_replace_tokens(check_markup(
+        _room_reservations_get_variable('confirmation_owner_text')), $params);
+      $message['body'][] = '<html><body>' . $body . '</body></html>';
+      break;
+
+    case 'notification':
+      foreach ($headers as $key => $value) {
+        $message['headers'][$key] = $value;
+      }
+      $message['subject'] = _room_reservations_replace_tokens(check_plain(
+        _room_reservations_get_variable('confirmation_header_text')), $params);
+      $body = _room_reservations_replace_tokens(check_markup(
+        _room_reservations_get_variable('confirmation_group_text')), $params);
+      $message['body'][] = '<html><body>' . $body . '</body></html>';
+      break;
+
+    case 'owner reminder':
+      foreach ($headers as $key => $value) {
+        $message['headers'][$key] = $value;
+      }
+      $message['subject'] = _room_reservations_replace_tokens(check_plain(
+        _room_reservations_get_variable('reminder_header_text')), $params);
+      $body = _room_reservations_replace_tokens(check_markup(
+        _room_reservations_get_variable('reminder_owner_text')), $params);
+      $message['body'][] = '<html><body>' . $body . '</body></html>';
+      break;
+
+    case 'group reminder':
+      foreach ($headers as $key => $value) {
+        $message['headers'][$key] = $value;
+      }
+      $message['subject'] = _room_reservations_replace_tokens(check_plain(
+        _room_reservations_get_variable('reminder_header_text')), $params);
+      $body = _room_reservations_replace_tokens(check_markup(
+        _room_reservations_get_variable('reminder_group_text')), $params);
+      $message['body'][] = '<html><body>' . $body . '</body></html>';
+      break;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function room_reservations_cron() {
+  // Send reservation reminders.
+  $send_reminders = _room_reservations_get_variable('send_reminders');
+  $last_reminders_sent = _room_reservations_get_variable('last_reminders_sent');
+  $reminder_time = (_room_reservations_get_variable('reminder_time') / 100);
+  $reminder_cutoff
+    = (_room_reservations_get_variable('reminder_cutoff') / 100) . ':00:00';
+  $reminders_sent_today = FALSE;
+  // Reminders are sent once a day.  Have they been sent today?
+  if ($last_reminders_sent) {
+    if ($last_reminders_sent == date("Y-m-d")) {
+      $reminders_sent_today = TRUE;
+    }
+  }
+  $current_hour = date("G");
+  if (($send_reminders) && (!$reminders_sent_today) &&
+    ($current_hour >= $reminder_time)) {
+    $today = date("Y-m-d");
+    $cutoff = $today . ' ' . $reminder_cutoff;
+    $tomorrow = date('Y-m-d', strtotime("now +1 days"));
+    $no_reminder_sent = '0000-00-00 00:00:00';
+    $not_deleted = 'N';
+    $sql = "
+      SELECT *
+      FROM {room_reservations}
+      WHERE date = '%s'
+      AND reminder_date = '%s'
+      AND create_date < '%s'
+      AND deleted = '%s'
+    ";
+    $record_count = 0;
+    $hours = _room_reservations_hours();
+    $result = db_query($sql, $tomorrow, $no_reminder_sent, $cutoff, $not_deleted);
+    if ($result) {
+      while ($data = db_fetch_object($result)) {
+        $id = $data->id;
+        $date = $data->date;
+        $time = $data->time;
+        $length = $data->length;
+        $room = $data->room;
+        $name = check_plain($data->name);
+        $group_size = $data->group_size;
+        $user_name = $data->user_name;
+        $email_addresses = check_plain($data->email_addresses);
+        $textmsg = $data->textmsg;
+        $carrier = $data->carrier;
+        $phone = check_plain($data->phone);
+        $record_count++;
+        $month_name = date("F", strtotime($date));
+        $month_number = date("n", strtotime($date));
+        $day = date("j", strtotime($date));
+        $day_of_week = date("l", strtotime($date));
+        foreach ($hours as $individual_hour) {
+          if ($individual_hour['time'] == $time) {
+            $display_time = $individual_hour['display'];
+            break;
+          }
+        }
+        // Send email reminders.
+        $params = array(
+          'room' => $room,
+          'month' => $month_name,
+          'month_number' => $month_number,
+          'day' => $day,
+          'day_of_week' => $day_of_week,
+          'time' => $display_time,
+          'minutes' => $length,
+          'name' => $name,
+          'id' => $id,
+          'carrier' => $carrier,
+          'phone' => $phone,
+        );
+        $from = check_plain(_room_reservations_get_variable('from_address'));
+        // Send an email to each person in the group.  If the person is the one
+        // who made the reservation, send the owner reminder message.
+        // Otherwise, send the group reminder message.
+        if (drupal_strlen($email_addresses)) {
+          $to_addresses = explode(',', $email_addresses);
+          foreach ($to_addresses as $to_address) {
+            $to_address = trim($to_address);
+            $pos = strpos($to_address, $user_name);
+            if ($pos === FALSE) {
+              $key = 'group reminder';
+            }
+            else {
+              $key = 'owner reminder';
+            }
+            $response = drupal_mail(
+              'room_reservations', $key, $to_address, language_default(),
+              $params, $from, TRUE);
+          }
+        }
+        // Send a text message if requested.
+        if ($textmsg == 'Y') {
+          _room_reservations_send_sms('reminder', $params);
+        }
+        // Update the reminder_date field in the db record.
+        $now = date("Y-m-d H:i");
+        $sql2 = "
+          UPDATE {room_reservations}
+          SET reminder_date = '%s'
+          WHERE id = %d
+        ";
+        $result2 = db_query($sql2, $now, $id);
+      }
+    }
+    _room_reservations_set_variable('last_reminders_sent', $today);
+  }
+  // End code to send reminders.
+  // Update the building hours records.
+  $update_building_hours = FALSE;
+  $today = date("Y-m-d");
+  $building_hours_update_date
+    = _room_reservations_get_variable('building hours update');
+  if ($building_hours_update_date) {
+    if ($building_hours_update_date < $today) {
+      $update_building_hours = TRUE;
+    }
+  }
+  if (!$building_hours_update_date) {
+    $update_building_hours = TRUE;
+  }
+  if ($update_building_hours) {
+    _room_reservations_set_variable('building hours update', $today);
+    $months = _room_reservations_current_months();
+    $x = 0;
+    foreach ($months as $month) {
+      // Delete first month - previous month.
+      if (!$x) {
+        $result = _room_reservations_delete_variable('MONTHLY_HOURS_' .
+          $month['YYYY_MM']);
+        $x++;
+      }
+      else {
+        // Create current three months if they don't exist.
+        $month_hours = _room_reservations_get_variable('MONTHLY_HOURS_' .
+          $month['YYYY_MM']);
+        if (!$month_hours) {
+          _room_reservations_create_mo_hours($month['year'], $month['month'],
+            $month['YYYY_MM']);
+        }
+      }
+    }
+  }
+}
+//
+//
+// NODE HOOKS.
+//
+//
+/**
+ * Implements hook_form().
+ */
+function room_reservations_form($node) {
+  $type = node_type_get_type($node);
+  if ($node->type == 'room_reservation_category') {
+    // Category title cannot be updated.
+    if ($node->title) {
+      $form['title'] = array(
+        '#title' => check_plain($type->title_label),
+        '#default_value' => $node->title,
+        '#description' => t("A short, unique name to identify the category to
+          the system.  Don't use spaces."),
+        '#weight' => 0,
+      );
+    }
+    else {
+      $form['title'] = array(
+        '#title' => check_plain($type->title_label),
+        '#type' => 'textfield',
+        '#required' => TRUE,
+        '#size' => 25,
+        '#maxlength' => 25,
+        '#description' => t("A short, unique name to identify the category to
+          the system.  Don't use spaces."),
+        '#weight' => 0,
+      );
+    }
+    $form['body'] = array(
+      '#type' => 'textfield',
+      '#title' => check_plain($type->body_label),
+      '#default_value' => $node->body,
+      '#required' => TRUE,
+      '#size' => 50,
+      '#maxlength' => 50,
+      '#description' => t('Category name displayed to the users.  Keep it short
+        so that all your categories fit on the reservation calendar.'),
+      '#weight' => 5,
+    );
+    $form['display_order'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Display order'),
+      '#default_value' => $node->display_order,
+      '#required' => TRUE,
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#description' => t('Enter a numerical value to determine the
+        order in which categories are displayed to the user.'),
+      '#weight' => 10,
+    );
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    $categories = _room_reservations_categories();
+    $options = array();
+    foreach ($categories as $category) {
+      $key = $category['category'];
+      $value = $category['display'];
+      $options[$key] = $value;
+    }
+    $form['title'] = array(
+      '#title' => check_plain($type->title_label),
+      '#type' => 'textfield',
+      '#default_value' => $node->title,
+      '#required' => TRUE,
+      '#size' => 10,
+      '#maxlength' => 10,
+      '#description' => t('The name of the room displayed on the
+        reservation calendar and form.  10 characters or less.'),
+      '#weight' => 0,
+    );
+    $form['body'] = array(
+      '#type' => 'textarea',
+      '#title' => check_plain($type->body_label),
+      '#default_value' => $node->body,
+      '#required' => FALSE,
+      '#rows' => 5,
+      '#description' => t('Information about the room that will help your
+        users select a suitable room.'),
+      '#weight' => 5,
+    );
+    $form['category'] = array(
+      '#type' => 'select',
+      '#title' => t('Category'),
+      '#default_value' => isset($node->category) ? $node->category : '',
+      '#options' => $options,
+      '#required' => TRUE,
+      '#description' => t('The category in which the room appears on the
+        reservation calendar.'),
+      '#weight' => 10,
+    );
+    $form['capacity'] = array(
+      '#title' => t('Capacity'),
+      '#type' => 'textfield',
+      '#default_value' => $node->capacity,
+      '#required' => TRUE,
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#description' => t('The number of persons the room will hold.'),
+      '#weight' => 15,
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_validate().
+ */
+function room_reservations_validate($node) {
+  if ($node->type == 'room_reservation_room') {
+    if (!ctype_digit($node->capacity)) {
+      form_set_error('capacity', t('Capacity must be numeric.'));
+    }
+  }
+  elseif ($node->type == 'room_reservation_category') {
+    if (!ctype_digit($node->display_order)) {
+      form_set_error('order', t('Display order must be numeric.'));
+    }
+  }
+}
+
+/**
+ * Implements hook_insert().
+ */
+function room_reservations_insert($node) {
+  if ($node->type == 'room_reservation_category') {
+    db_query("
+      INSERT INTO {room_reservations_category}
+      (nid, vid, display_order)
+      VALUES (%d, %d, %d)
+      ", $node->nid, $node->vid, $node->display_order);
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    db_query("
+      INSERT INTO {room_reservations_room}
+      (nid, vid, category, capacity)
+      VALUES (%d, %d, '%s', %d)
+      ", $node->nid, $node->vid, $node->category, $node->capacity);
+  }
+}
+
+/**
+ * Implements hook_update().
+ */
+function room_reservations_update($node) {
+  if ($node->type == 'room_reservation_category') {
+    if ($node->revision) {
+      room_reservations_insert($node);
+    }
+    else {
+      db_query("
+        UPDATE {room_reservations_category}
+        SET display_order = %d
+        WHERE vid = %d
+        ", $node->display_order, $node->vid);
+    }
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    if ($node->revision) {
+      room_reservations_insert($node);
+    }
+    else {
+      db_query("
+        UPDATE {room_reservations_room}
+        SET category = '%s',
+        capacity = %d
+        WHERE vid = %d
+        ", $node->category, $node->capacity, $node->vid);
+    }
+  }
+}
+
+/**
+ * Implements hook_delete().
+ */
+function room_reservations_delete($node) {
+  if ($node->type == 'room_reservation_category') {
+    db_query("
+      DELETE FROM {room_reservations_category}
+      WHERE nid = %d
+      ", $node->nid);
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    db_query("
+      DELETE FROM {room_reservations_room}
+      WHERE nid = %d
+      ", $node->nid);
+  }
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function room_reservations_node_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
+  if ($node->type == 'room_reservation_category') {
+    if ($op == 'delete revision') {
+      db_query("
+        DELETE FROM {room_reservations_category}
+        WHERE vid = %d
+        ", $node->vid);
+    }
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    if ($op == 'delete revision') {
+      db_query("
+        DELETE FROM {room_reservations_room}
+        WHERE vid = %d
+        ", $node->vid);
+    }
+  }
+}
+
+/**
+ * Implements hook_load().
+ */
+function room_reservations_load($nodes) {
+  // ERROR: return statement not found in hook_load
+  if ($node->type == 'room_reservation_category') {
+    return db_fetch_object(
+        db_query("
+        SELECT display_order
+        FROM {room_reservations_category}
+        WHERE vid = %d
+        ", $node->vid)
+    );
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    return db_fetch_object(
+        db_query("
+        SELECT category, capacity
+        FROM {room_reservations_room}
+        WHERE vid = %d
+        ", $node->vid)
+    );
+  }
+}
+
+/**
+ * Implements hook_view().
+ */
+function room_reservations_view($node, $teaser = FALSE, $page = FALSE) {
+  if ($node->type == 'room_reservation_category') {
+    if ($teaser) {
+      $node = node_prepare($node, $teaser);
+    }
+    else {
+      $node = node_prepare($node, $teaser);
+      $node->content['order'] = array(
+        '#value' => '<b>' . t('Display order') . ':</b>  ' .
+        $node->display_order . '<br /><br />',
+        '#weight' => 10,
+      );
+    }
+  }
+  elseif ($node->type == 'room_reservation_room') {
+    if ($teaser) {
+      $node = node_prepare($node, $teaser);
+    }
+    else {
+      $node = node_prepare($node, $teaser);
+      $display_category = '';
+      $categories = _room_reservations_categories();
+      foreach ($categories as $category) {
+        $key = $category['category'];
+        $value = $category['display'];
+        if ($node->category == $key) {
+          $display_category = $value;
+          break;
+        }
+      }
+      $node->content['category'] = array(
+        '#value' => '<b>' . t('Category') . ':</b>  ' . $display_category .
+        '<br /><br />',
+        '#weight' => 10,
+      );
+      $node->content['capacity'] = array(
+        '#value' => '<b>' . t('Capacity') . ':</b>  ' . $node->capacity .
+        '<br /><br />',
+        '#weight' => 15,
+      );
+    }
+  }
+  return $node;
+}

@@ -1,0 +1,250 @@
+<?php
+
+/**
+ * @file
+ * Database install/uninstall file for the Room Reservations module.
+ *
+ * @author Bob Humphrey, Web and Applications Developer, UNCW Randall Library
+ */
+
+/**
+ * Implements hook_install().
+ */
+function room_reservations_install() {
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_install_schema('room_reservations')
+  //drupal_install_schema('room_reservations_category');
+  //drupal_install_schema('room_reservations_room');
+ // drupal_install_schema('room_reservations_variables');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function room_reservations_uninstall() {
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_uninstall_schema('room_reservations')
+ // drupal_uninstall_schema('room_reservations_category');
+ // drupal_uninstall_schema('room_reservations_room');
+ // drupal_uninstall_schema('room_reservations_variables');
+  variable_del('room_reservations_advance_days');
+  variable_del('room_reservations_calendar_text');
+  variable_del('room_reservations_emp_roles');
+  variable_del('room_reservations_end_early');
+  variable_del('room_reservations_group_size');
+  variable_del('room_reservations_max_length');
+  variable_del('room_reservations_policies');
+  variable_del('room_reservations_reservations_per_day');
+  variable_del('room_reservations_reservations_per_user');
+  variable_del('room_reservations_send_reminders');
+  variable_del('room_reservations_title');
+  variable_del('room_reservations_mobile_url');
+}
+
+/**
+ * Implements hook_schema().
+ */
+function room_reservations_schema() {
+  $schema['room_reservations'] = array(
+    'description' => '',
+    'fields' => array(
+      'id' => array(
+        'description' => '',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'deleted' => array(
+        'description' => '',
+        'type' => 'char',
+        'length' => '1',
+        'not null' => TRUE,
+        'default' => 'N',
+      ),
+      'date' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '10',
+        'not null' => TRUE,
+      ),
+      'time' => array(
+        'description' => '',
+        'type' => 'char',
+        'length' => '4',
+        'not null' => TRUE,
+      ),
+      'length' => array(
+        'description' => '',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+      ),
+      'room' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '14',
+        'not null' => TRUE,
+      ),
+      'group_size' => array(
+        'description' => '',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ),
+      'user_name' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '80',
+        'not null' => TRUE,
+      ),
+      'textmsg' => array(
+        'description' => '',
+        'type' => 'char',
+        'length' => '1',
+        'not null' => TRUE,
+        'default' => 'N',
+      ),
+      'carrier' => array(
+        'description' => '',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'phone' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '10',
+        'not null' => FALSE,
+      ),
+      'email_addresses' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'create_date' => array(
+        'description' => '',
+        'mysql_type' => 'DATETIME',
+        'not null' => TRUE,
+      ),
+      'update_date' => array(
+        'description' => '',
+        //'type' => 'datetime',
+        'mysql_type' => 'DATETIME',
+        'not null' => TRUE,
+        //'default' => '0000-00-00 00:00:00',
+      ),
+      'reminder_date' => array(
+        'description' => '',
+        'mysql_type' => 'DATETIME',
+        'not null' => TRUE,
+        //'default' => '0000-00-00 00:00:00',
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'date' => array('date'),
+      'deleted' => array('deleted'),
+      'length' => array('length'),
+      'room' => array('room'),
+      'time' => array('time'),
+      'user_name' => array('user_name'),
+    ),
+  );
+  $schema['room_reservations_category'] = array(
+    'description' => '',
+    'fields' => array(
+      'nid' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'display_order' => array(
+        'description' => '',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid', 'vid'),
+    'unique keys' => array(
+      'vid' => array('vid'),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
+    ),
+  );
+  $schema['room_reservations_room'] = array(
+    'description' => '',
+    'fields' => array(
+      'nid' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'category' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '25',
+        'not null' => TRUE,
+      ),
+      'capacity' => array(
+        'description' => '',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid', 'vid'),
+    'unique keys' => array(
+      'vid' => array('vid'),
+    ),
+    'indexes' => array(
+      'category' => array('category'),
+      'nid' => array('nid'),
+    ),
+  );
+  $schema['room_reservations_variables'] = array(
+    'description' => '',
+    'fields' => array(
+      'id' => array(
+        'description' => '',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+      ),
+      'value' => array(
+        'description' => '',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
+  );
+  return $schema;
+}
