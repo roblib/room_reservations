@@ -112,12 +112,12 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
   }
   $sql = "
     SELECT * FROM room_reservations
-    WHERE date = '%s'
-    AND deleted = '%s'
+    WHERE date = ':date'
+    AND deleted = ':delete'
     ORDER BY time
   ";
-  $result = db_query($sql, $yyyymmdd, 'N');
-  while ($data = db_fetch_object($result)) {
+  $result = db_query($sql, array(':date' => $yyyymmdd, ':delete' => 'N'));
+  foreach ($result as $data) {
     $id = $data->id;
     $time = $data->time;
     $room_name = $data->room;
@@ -176,13 +176,21 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
   $sql = "
     SELECT id, time, length, room, name, user_name
     FROM {room_reservations}
-    WHERE date = '%s'
-    AND time IN ('%s', '%s', '%s', '%s', '%s', '%s', '%s')
-    AND deleted = '%s'
+    WHERE date = ':previous_day'
+    AND time IN (':search_times0', ':search_times1', ':search_times2', ':search_times3', ':search_times4', ':search_times5', ':search_times6')
+    AND deleted = ':delete'
     ORDER BY time
   ";
-  $result = db_query($sql, $previous_day, $search_times[0], $search_times[1], $search_times[2], $search_times[3], $search_times[4], $search_times[5], $search_times[6], 'N');
-  while ($data = db_fetch_object($result)) {
+  $result = db_query($sql, array(':previous_day' => $previous_day, 
+                                 ':search_times0'=> $search_times[0], 
+                                 ':search_times1'=> $search_times[1], 
+                                 ':search_times2'=> $search_times[2], 
+                                 ':search_times3'=> $search_times[3], 
+                                 ':search_times4'=> $search_times[4], 
+                                 ':search_times5'=> $search_times[5], 
+                                 ':search_times6'=> $search_times[6],
+                                 ':delete'=>'N'));
+    foreach ($result as $data) {
     $id = $data->id;
     $time = $data->time;
     $length = $data->length;
@@ -218,8 +226,8 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
   }
   $user_reservations = _room_reservations_user_reservations();
   // TODO Please change this theme call to use an associative array for the $variables parameter.
-  $output .= theme('room_reservations', $dates, $categories, $reservations,
+  $output .= theme('room_reservations', array($dates, $categories, $reservations,
     $hours, $_room_reservations_building_hours, $building_hours_display, $rooms,
-    $selected_category, $user_reservations);
+    $selected_category, $user_reservations));
   return $output;
 }

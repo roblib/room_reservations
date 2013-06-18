@@ -1,4 +1,4 @@
-<?php
+<?php //
 /**
  * @file
  * Miscellaneous controller functionality.
@@ -53,6 +53,6 @@ function room_reservations_descriptions() {
   $categories = _room_reservations_categories();
   $rooms = _room_reservations_rooms();
   // TODO Please change this theme call to use an associative array for the $variables parameter.
-  $output .= theme('room_reservations_descriptions', $categories, $rooms);
+  $output .= theme('room_reservations_descriptions', array($categories, $rooms));
   return $output;
 }
