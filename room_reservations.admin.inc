@@ -710,11 +710,11 @@ function room_reservations_admin_settings_default_hours_submit($form_id,
   $sql = "
     SELECT *
     FROM {room_reservations_variables}
-    WHERE name LIKE '%s'
+    WHERE name LIKE ':monthly_hours'
   ";
-  $result = db_query($sql, 'monthly_hours_%');
+  $result = db_query($sql, array(':monthly_hours' => 'monthly_hours_%'));
   if ($result) {
-    while ($data = db_fetch_object($result)) {
+    foreach($result as $data){
       $name = $data->name;
       $month = intval(drupal_substr($name, 19));
       $year = drupal_substr($name, 14, 4);
@@ -1242,10 +1242,10 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
   $sql = "
     SELECT id, value
     FROM {room_reservations_variables}
-    WHERE name = '%s'
+    WHERE name = ':name'
     ORDER BY value
   ";
-  $result = db_query($sql, 'carrier');
+  $result = db_query($sql, array(':name' => 'carrier'));
   if ($result) {
     $options = array();
     $form['carriers']['list_0'] = array(
@@ -1254,7 +1254,7 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
       '#weight' => -99,
     );
     $x = 0;
-    while ($data = db_fetch_object($result)) {
+    foreach($result as $data) {
       $x++;
       $id = $data->id;
       $values = explode('~', $data->value);
@@ -1375,11 +1375,11 @@ function room_reservations_admin_settings_sms_add_validate($form_id,
       $sql = "
         SELECT value
         FROM {room_reservations_variables}
-        WHERE name = '%s'
+        WHERE name = ':name'
         ";
-      $result = db_query($sql, 'carrier');
+      $result = db_query($sql, array(':name'=>'carrier'));
       if ($result) {
-        while ($data = db_fetch_object($result)) {
+        foreach($result as $data) {
           $values = explode('~', $data->value);
           if ($values[0] == $carrier) {
             $field = 'add_carrier][carrier';
@@ -1405,9 +1405,9 @@ function room_reservations_admin_settings_sms_add_submit($form_id,
     $sql = "
       INSERT INTO {room_reservations_variables}
       (name, value)
-      VALUES ('%s', '%s')
+      VALUES (':name', ':value')
       ";
-    $result = db_query($sql, 'carrier', $carrier . '~' . $domain);
+    $result = db_query($sql, array(':name'=>'carrier',':value'=>$carrier . '~' . $domain));
     if (!$result) {
       drupal_set_message(t('The wireless carrier could not be added.'),
         'error');
@@ -1425,15 +1425,15 @@ function room_reservations_admin_settings_sms_delete($form, &$form_state) {
   $sql = "
     SELECT id, value
     FROM {room_reservations_variables}
-    WHERE name = '%s'
+    WHERE name = ':name'
     ORDER BY value
   ";
-  $result = db_query($sql, 'carrier');
+  $result = db_query($sql, array(':name'=>'carrier'));
   if ($result) {
     $options = array();
     $options[strval(0)] = t('Select a wireless carrier');
     $x = 0;
-    while ($data = db_fetch_object($result)) {
+    foreach ($result as $data) {
       $x++;
       $id = $data->id;
       $values = explode('~', $data->value);
@@ -1481,9 +1481,9 @@ function room_reservations_admin_settings_sms_delete_submit($form_id,
     $carrier = $form_state['values']['carrier'];
     $sql = "
       DELETE FROM {room_reservations_variables}
-      WHERE ID = %d
+      WHERE ID = :id
       ";
-    $result = db_query($sql, $carrier);
+    $result = db_query($sql, array('id'=>$carrier));
     if (!$result) {
       drupal_set_message(t('The wireless carrier could not be deleted.'),
         'error');

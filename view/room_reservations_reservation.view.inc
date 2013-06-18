@@ -436,13 +436,14 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       $mainsite = trim(_room_reservations_get_variable('main_database'));
       db_set_active($mainsite);
     }
-    $result = db_query("
+    $sql = "
       INSERT INTO {room_reservations}
       (date, time, length, room, name, group_size, user_name, email_addresses,
         create_date,
       textmsg, carrier, phone )
-      VALUES ('%s', '%s', %d, '%s', '%s', %d, '%s', '%s', '%s', '%s', %d,
-      '%s')", $yyyymmdd, $time, $length, $room, $group_name, $group_size, $user_name, $email_addresses, date('Y-m-d H:i:s', REQUEST_TIME), $textmsg, $carrier, $phone);
+      VALUES (':date', ':time', :length, ':room', ':group_name', :group_size, ':user_name', ':email_address', ':request_date', ':text_msg', :carrier,
+      ':phone')";
+    $result = db_query($sql, array(':date' => $yyyymmdd, ':time'=>$time, ':lenght'=>$length, ':room'=>$room, ':group_name'=>$group_name, ':group_size'=>$group_size, ':user_name'=>$user_name, ':email_address'=>$email_addresses, ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME), ':text_msg'=>$textmsg, ':carrier'=>$carrier, ':phone'=>$phone));
     // Send a confirmation email or text message.
     $id = db_last_insert_id('room_reservations', 'id');
     $params = array(
@@ -507,17 +508,27 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       $mainsite = trim(_room_reservations_get_variable('main_database'));
       db_set_active($mainsite);
     }
-    $result = db_query("
+    
+    $sql ="
       UPDATE {room_reservations}
-      SET length = %d,
-      name = '%s',
-      group_size = %d,
-      email_addresses = '%s',
-      update_date = '%s',
-      textmsg = '%s',
-      carrier = %d,
-      phone = '%s'
-      WHERE id = %d", $length, $group_name, $group_size, $email_addresses, date('Y-m-d H:i:s', REQUEST_TIME), $textmsg, $carrier, $phone, $id);
+      SET length = :length,
+      name = ':name',
+      group_size = :group_size,
+      email_addresses = ':address',
+      update_date = ':update_date',
+      textmsg = ':text_msg',
+      carrier = :carrier,
+      phone = ':phone'
+      WHERE id = :id";
+    $result = db_query($sql, array(':lenght'=>$length, 
+                                   ':name'=>$group_name, 
+                                   ':group_size'=>$group_size, 
+                                   ':address'=>$email_addresses, 
+                                   ':update_date'=>date('Y-m-d H:i:s', REQUEST_TIME), 
+                                   ':text_msg'=>$textmsg, 
+                                   ':carrier'=>$carrier, 
+                                   ':phone'=>$phone, 
+                                   ':id'=>$id));
     if ($result) {
       drupal_set_message(t('Your group study room reservation has been
          updated.'));
@@ -643,9 +654,11 @@ function room_reservations_cancel_form_submit($form_id, &$form_state) {
     }
     $result = db_query("
       UPDATE {room_reservations}
-      SET deleted = '%s',
-      update_date = '%s'
-      WHERE id = %d", 'Y', date('Y-m-d H:i:s', REQUEST_TIME), $id);
+      SET deleted = ':delete',
+      update_date = ':update_date'
+      WHERE id = :id", array(':delete' => 'Y', 
+                             ':update_date' => date('Y-m-d H:i:s', REQUEST_TIME), 
+                             ':id'=>$id));
     if ($result) {
       drupal_set_message(t('Your group study room reservation has been
          cancelled.'));

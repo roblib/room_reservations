@@ -193,7 +193,7 @@ function theme_room_reservations($variables) {
     $output .= "<div id='info'><div>$calendar_text</div>
       <div><img id='arrow' src='" .
       base_path() . drupal_get_path('module', 'room_reservations') .
-      "/images/007354-blue-jelly-icon-arrows-arrow-sparkle.png' />
+      "/view/images/007354-blue-jelly-icon-arrows-arrow-sparkle.png' />
       <span id='start'>" . $reserve_room_instructions_text .
       '</span></div></div>';
     // Calendar date.
@@ -364,5 +364,6 @@ function theme_room_reservations($variables) {
     $output .= '</div>';
     $output .= '</div>';
   }
+  
   return $output;
 }
