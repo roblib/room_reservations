@@ -710,7 +710,7 @@ function room_reservations_admin_settings_default_hours_submit($form_id,
   $sql = "
     SELECT *
     FROM {room_reservations_variables}
-    WHERE name LIKE ':monthly_hours'
+    WHERE name LIKE :monthly_hours
   ";
   $result = db_query($sql, array(':monthly_hours' => 'monthly_hours_%'));
   if ($result) {
@@ -1242,7 +1242,7 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
   $sql = "
     SELECT id, value
     FROM {room_reservations_variables}
-    WHERE name = ':name'
+    WHERE name = :name
     ORDER BY value
   ";
   $result = db_query($sql, array(':name' => 'carrier'));
@@ -1375,7 +1375,7 @@ function room_reservations_admin_settings_sms_add_validate($form_id,
       $sql = "
         SELECT value
         FROM {room_reservations_variables}
-        WHERE name = ':name'
+        WHERE name = :name
         ";
       $result = db_query($sql, array(':name'=>'carrier'));
       if ($result) {
@@ -1405,7 +1405,7 @@ function room_reservations_admin_settings_sms_add_submit($form_id,
     $sql = "
       INSERT INTO {room_reservations_variables}
       (name, value)
-      VALUES (':name', ':value')
+      VALUES (:name, :value)
       ";
     $result = db_query($sql, array(':name'=>'carrier',':value'=>$carrier . '~' . $domain));
     if (!$result) {
@@ -1425,7 +1425,7 @@ function room_reservations_admin_settings_sms_delete($form, &$form_state) {
   $sql = "
     SELECT id, value
     FROM {room_reservations_variables}
-    WHERE name = ':name'
+    WHERE name = :name
     ORDER BY value
   ";
   $result = db_query($sql, array(':name'=>'carrier'));

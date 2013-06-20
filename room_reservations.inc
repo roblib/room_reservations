@@ -255,10 +255,10 @@ function _room_reservations_categories() {
     JOIN {room_reservations_category}
     ON {node}.nid = {room_reservations_category}.nid
     AND {node}.vid = {room_reservations_category}.vid
-    WHERE {node}.type = ':type'
+    WHERE {node}.type = :type
     ORDER BY {room_reservations_category}.display_order
   ";
-  $result = db_query($sql,array( ':type'=>'room_reservation_category'));
+  $result = db_query($sql,array( ':type'=>'room_reservations_category'));
   if ($result) {
     foreach ($result as $data) {
       $category_name = check_plain($data->title);
@@ -268,7 +268,9 @@ function _room_reservations_categories() {
         'display' => $display_name,
       );
     }
+
   }
+  
   return $categories;
 }
 
@@ -290,10 +292,10 @@ function _room_reservations_rooms() {
     JOIN {room_reservations_room}
     ON {node}.nid = {room_reservations_room}.nid
     AND {node}.vid = {room_reservations_room}.vid
-    WHERE {node}.type = ':type'
+    WHERE {node}.type = :type 
     ORDER BY {node_revision}.title
   ";
-  $result = db_query($sql,array(':type' => 'room_reservation_room'));
+  $result = db_query($sql,array(':type' => 'room_reservations_room'));
   if ($result) {
     foreach ($result as $data) {
       $rooms[] = array(
@@ -954,28 +956,28 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
     SELECT id
     FROM {room_reservations}
     WHERE (
-    (deleted = ':delete' AND room = ':room' AND date = ':date0' AND	time = ':time0' AND
+    (deleted = :delete AND room = :room AND date = :date0 AND	time = :time0 AND
     length > :length0)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date1' AND	time = ':time1' AND
+    (deleted = :delete AND room = :room AND date = :date1 AND	time = :time1 AND
     length > :length1)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date2' AND	time = ':time2' AND
+    (deleted = :delete AND room = :room AND date = :date2 AND	time = :time2 AND
     length > :length2)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date3' AND	time = ':time3' AND
+    (deleted = :delete AND room = :room AND date = :date3 AND	time = :time3 AND
     length > :length3)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date4' AND	time = ':time4' AND
+    (deleted = :delete AND room = :room AND date = :date4 AND	time = :time4 AND
     length > :length4)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date5' AND	time = ':time5' AND
+    (deleted = :delete AND room = :room AND date = :date5 AND	time = :time5 AND
     length > :length5)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date6' AND	time = ':time6' AND
+    (deleted = :delete AND room = :room AND date = :date6 AND	time = :time6 AND
     length > :length6)
     OR
-    (deleted = ':delete' AND room = ':room' AND date = ':date7' AND	time = ':time7' AND
+    (deleted = :delete AND room = :room AND date = :date7 AND	time = :time7 AND
     length > :length7)
     )
   ";
@@ -1096,8 +1098,8 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
       $sql = "
         SELECT id
         FROM {room_reservations}
-        WHERE deleted = ':deleted' AND room = ':room' AND date = ':date'
-          AND	time = ':time' AND id <> :id
+        WHERE deleted = :deleted AND room = :room AND date = :date
+          AND	time = :time AND id <> :id
       ";
       $conflicts_found = FALSE;
       $result = db_query($sql, array('deleted' => 'N', ':room' => $room, ':date' => $date, ':time' => $start_time, ':id' => $id));
@@ -1381,7 +1383,7 @@ function _room_reservations_carriers() {
   $carriers = array();
   $sql = "
     SELECT * FROM {room_reservations_variables}
-    WHERE name = ':name'
+    WHERE name = :name
     ORDER BY value
   ";
   $result = db_query($sql, array(':name'=>'carrier'));
@@ -1419,7 +1421,7 @@ function _room_reservations_carrier_address($carrier) {
   $carrier_address = '';
   $sql = "
     SELECT * FROM {room_reservations_variables}
-    WHERE name = ':name'
+    WHERE name = :name
     ORDER BY id
   ";
   $result = db_query($sql, array(':name'=>'carrier'));
@@ -1546,13 +1548,13 @@ function _room_reservations_get_variable($key) {
   $sql = "
     SELECT value
     FROM {room_reservations_variables}
-    WHERE name = ':s'
+    WHERE name = :name
   ";
-  $result = db_query($sql, array(':s' => $key));
+  $result = db_query($sql, array(':name' => $key));
   if ($result) {
     $value = '';
-    foreach ($result as $record) {
-      $value = $record->value;
+    foreach ($result as $data) {
+      $value = $data->value;
     }
     return $value;
   }
@@ -1580,23 +1582,23 @@ function _room_reservations_set_variable($key, $value) {
   $sql = "
     SELECT id
     FROM {room_reservations_variables}
-    WHERE name = ':nwm4'
+    WHERE name = :name
   ";
   $id = db_query($sql, array(':name' => $key))->fetchField();
   if ($id) {
     $sql = "
       UPDATE {room_reservations_variables}
-      SET value = ':value'
-      WHERE id = :d
+      SET value = :value
+      WHERE id = :id
     ";
-    $result = db_query($sql, array(':value'=> $value , ':d' => $id));
+    $result = db_query($sql, array(':value'=> $value , ':id' => $id));
     return $result;
   }
   else {
     $sql = "
       INSERT INTO {room_reservations_variables}
       (name, value)
-      VALUES (':name', ':value')
+      VALUES (:name, :value)
     ";
     $result = db_query($sql, array(':name'=> $key , 
                                    ':value' => $value));
@@ -1618,7 +1620,7 @@ function _room_reservations_delete_variable($key) {
   $sql = "
     SELECT id
     FROM {room_reservations_variables}
-    WHERE name = ':name'
+    WHERE name = :name
   ";
   $id = db_query($sql, array(':name'=>$key))->fetchField();
   if ($id) {

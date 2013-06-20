@@ -26,8 +26,8 @@ function room_reservations_res_list() {
     $count = count($user_reservations);
   }
   // TODO Please change this theme call to use an associative array for the $variables parameter.
-  $output .= theme('room_reservations_list', $user, $base_url,
-      $user_reservations, $count);
+  $output = theme('room_reservations_list', array($user, $base_url,
+      $user_reservations, $count));
   return $output;
 }
 
@@ -53,6 +53,6 @@ function room_reservations_descriptions() {
   $categories = _room_reservations_categories();
   $rooms = _room_reservations_rooms();
   // TODO Please change this theme call to use an associative array for the $variables parameter.
-  $output .= theme('room_reservations_descriptions', array($categories, $rooms));
+  $output = theme('room_reservations_descriptions', array($categories, $rooms));
   return $output;
 }

@@ -226,7 +226,7 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
   }
   $user_reservations = _room_reservations_user_reservations();
   // TODO Please change this theme call to use an associative array for the $variables parameter.
-  $output .= theme('room_reservations', array($dates, $categories, $reservations,
+  $output = theme('room_reservations', array($dates, $categories, $reservations,
     $hours, $_room_reservations_building_hours, $building_hours_display, $rooms,
     $selected_category, $user_reservations));
   return $output;

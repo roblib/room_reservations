@@ -305,6 +305,7 @@ function theme_room_reservations($variables) {
               $booked_class = 'closed';
             }
             // The time slot can be reserved by the current user.
+            $viewable_class=null;
             if ($booked_class == 'reservable') {
               $link = "<a href='" . $base_url . "/room_reservations/add/" .
                 $month_number . "/" . $xday . "/" .

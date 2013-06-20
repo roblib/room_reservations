@@ -441,8 +441,8 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       (date, time, length, room, name, group_size, user_name, email_addresses,
         create_date,
       textmsg, carrier, phone )
-      VALUES (':date', ':time', :length, ':room', ':group_name', :group_size, ':user_name', ':email_address', ':request_date', ':text_msg', :carrier,
-      ':phone')";
+      VALUES (:date, :time, :length, :room, :group_name, :group_size, :user_name, :email_address, :request_date, :text_msg, :carrier,
+      :phone)";
     $result = db_query($sql, array(':date' => $yyyymmdd, ':time'=>$time, ':lenght'=>$length, ':room'=>$room, ':group_name'=>$group_name, ':group_size'=>$group_size, ':user_name'=>$user_name, ':email_address'=>$email_addresses, ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME), ':text_msg'=>$textmsg, ':carrier'=>$carrier, ':phone'=>$phone));
     // Send a confirmation email or text message.
     $id = db_last_insert_id('room_reservations', 'id');
