@@ -311,7 +311,7 @@ function theme_room_reservations($variables) {
                 $month_number . "/" . $xday . "/" .
                 $time_slot['time'] . "/" . $room['name'] . "'><img src='" .
                 base_path() . drupal_get_path('module', 'room_reservations') .
-                "/images/clear.png' /></a>";
+                "/view/images/clear.png' /></a>";
               $viewable = '';
             }
             // The time slot can be reserved by the current user,
@@ -322,7 +322,7 @@ function theme_room_reservations($variables) {
                 $month_number . "/" . $xday . "/" .
                 $time_slot['time'] . "/" . $room['name'] . "'><img src='" .
                 base_path() . drupal_get_path('module', 'room_reservations') .
-                "/images/clear.png' /></a>";
+                "/view/images/clear.png' /></a>";
               $viewable = '';
             }
             elseif ($booked_class == 'closed') {
@@ -330,7 +330,7 @@ function theme_room_reservations($variables) {
             }
             else {
               // The time slot has a reservation that can be viewed by the
-              // current user.
+              // current user. 
               $user_name = $reservations[$room_name][$time]['user_name'];
               $viewable_class = (($full_access) ||
                 ($user_login_name == $user_name)) ? 'viewable' : '';
@@ -365,6 +365,5 @@ function theme_room_reservations($variables) {
     $output .= '</div>';
     $output .= '</div>';
   }
-  
   return $output;
 }

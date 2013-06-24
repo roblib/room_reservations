@@ -13,7 +13,7 @@
  *   A reservation object that contains all the details related to the
  *   reservation being made, updated, or viewed.
  */
-function room_reservations_res_form(&$form_state, $operation, $res) {
+function room_reservations_res_form($node,&$form_state, $operation, $res) {
   $reserve_form_instructions_text = check_markup(
     _room_reservations_get_variable('reserve_form_instructions'));
   $room_reservations_group_size
@@ -65,20 +65,20 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
   $form['details']['room'] = array(
     '#title' => t('Room'),
     '#type' => 'item',
-    '#value' => t('@room (capacity: !capacity persons)',
+    '#markup' => t('@room (capacity: !capacity persons)',
       array('@room' => $res->room, '!capacity' => $res->roomCapacity)),
     '#weight' => 20,
   );
   $form['details']['display_date'] = array(
     '#title' => t('Date'),
     '#type' => 'item',
-    '#value' => t($res->displayDate),
+    '#markup' => t($res->displayDate),
     '#weight' => 25,
   );
   $form['details']['time'] = array(
     '#title' => t('Time'),
     '#type' => 'item',
-    '#value' => t($res->displayTime),
+    '#markup' => t($res->displayTime),
     '#weight' => 30,
   );
   if ($operation == 'add') {
@@ -104,7 +104,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
     $form['details']['length'] = array(
       '#title' => t('Length'),
       '#type' => 'item',
-      '#value' => $res->length,
+      '#markup' => $res->length,
       '#weight' => 35,
     );
   }
@@ -125,7 +125,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
     $form['details']['group_name'] = array(
       '#title' => t('Group name'),
       '#type' => 'item',
-      '#value' => $res->name,
+      '#markup' => $res->name,
       '#weight' => 40,
     );
   }
@@ -153,7 +153,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
       $form['details']['group_size'] = array(
         '#title' => t('Size of the group'),
         '#type' => 'item',
-        '#value' => $res->groupSize,
+        '#markup' => $res->groupSize,
         '#weight' => 45,
       );
     }
@@ -162,7 +162,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
     $form['details']['user_name'] = array(
       '#title' => t('User name'),
       '#type' => 'item',
-      '#value' => $res->userName,
+      '#markup' => $res->userName,
       '#weight' => 55,
     );
   }
@@ -213,6 +213,8 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
       );
     }
   }
+  else {
+  }
   $mobile = _room_reservations_detect_mobile();
   if ($mobile) {
     $reminder_columns = 30;
@@ -237,7 +239,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
     $form['reminders']['email_addresses'] = array(
       '#title' => t('Email Addresses'),
       '#type' => 'item',
-      '#value' => $res->emailAddresses,
+      '#markup' => $res->emailAddresses,
       '#weight' => 90,
     );
   }
@@ -293,7 +295,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
   else {
     $form['category'] = array(
       '#type' => 'value',
-      '#value' => $res->category,
+      '#value' => $res->roomCategory,
     );
   }
   $form['yyyymmdd'] = array(
@@ -315,7 +317,7 @@ function room_reservations_res_form(&$form_state, $operation, $res) {
  * @param array $form_state
  *   Drupal form state object.
  */
-function room_reservations_res_form_validate($form_id, &$form_state) {
+function room_reservations_res_form_validate($form, &$form_state) {
   // When a user is filling out the form to reserve a room, it is possible that
   // before she can submit the form, someone else will complete a reservation
   // for that same room, same date, and at least part of the same time period.
@@ -368,19 +370,21 @@ function room_reservations_res_form_validate($form_id, &$form_state) {
   }
 
   // Text message information.
-  if ($form_state['values']['textmsg']) {
-    $phone = $form_state['values']['phone'];
-    $phone_number = preg_replace('/[^\d]/', '', $phone);
-    if (drupal_strlen($phone_number) <> 10) {
-      form_set_error('phone', t('Ten digit phone number is required
+  $sms_option = _room_reservations_get_variable('sms_option');
+  if ($sms_option) {
+    if ($form_state['values']['textmsg']) {
+      $phone = $form_state['values']['phone'];
+      $phone_number = preg_replace('/[^\d]/', '', $phone);
+      if (drupal_strlen($phone_number) <> 10) {
+        form_set_error('phone', t('Ten digit phone number is required
         when receiving confirmation by text message.'));
-    }
-    if (!$form_state['values']['carrier']) {
-      form_set_error('carrier', t('Carrier is required
+      }
+      if (!$form_state['values']['carrier']) {
+        form_set_error('carrier', t('Carrier is required
         when receiving confirmation by text message.'));
+      }
     }
   }
-
 }
 
 /**
@@ -405,10 +409,17 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
   $category = $form_state['values']['category'];
   $yyyymmdd = $form_state['values']['yyyymmdd'];
   $email_addresses = trim($form_state['values']['email_addresses']);
-  $textmsg_checkbox = $form_state['values']['textmsg'];
-  $carrier = $form_state['values']['carrier'];
-  $phone_full = $form_state['values']['phone'];
-  $phone = preg_replace('/[^\d]/', '', $phone_full);
+
+  $sms_option = _room_reservations_get_variable('sms_option');
+  
+  $textmsg_checkbox = null;
+  if ($sms_option) {
+    $textmsg_checkbox = $form_state['values']['textmsg'];
+    $carrier = $form_state['values']['carrier'];
+    $phone_full = $form_state['values']['phone'];
+    $phone = preg_replace('/[^\d]/', '', $phone_full);
+  }
+
   if ($textmsg_checkbox) {
     $textmsg = 'Y';
   }
@@ -436,14 +447,17 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       $mainsite = trim(_room_reservations_get_variable('main_database'));
       db_set_active($mainsite);
     }
+    if(!$group_size)
+    {
+      $group_size=0;
+    }
+    
     $sql = "
       INSERT INTO {room_reservations}
-      (date, time, length, room, name, group_size, user_name, email_addresses,
-        create_date,
-      textmsg, carrier, phone )
+      (date, time, length, room, name, group_size, user_name, email_addresses,create_date,textmsg, carrier, phone,update_date,reminder_date)
       VALUES (:date, :time, :length, :room, :group_name, :group_size, :user_name, :email_address, :request_date, :text_msg, :carrier,
-      :phone)";
-    $result = db_query($sql, array(':date' => $yyyymmdd, ':time'=>$time, ':lenght'=>$length, ':room'=>$room, ':group_name'=>$group_name, ':group_size'=>$group_size, ':user_name'=>$user_name, ':email_address'=>$email_addresses, ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME), ':text_msg'=>$textmsg, ':carrier'=>$carrier, ':phone'=>$phone));
+      :phone,:update_date,:reminder_date)";
+    $result = db_query($sql, array(':date' => $yyyymmdd, ':time'=>$time, ':length'=>$length, ':room'=>$room, ':group_name'=>$group_name, ':group_size'=>$group_size, ':user_name'=>$user_name, ':email_address'=>$email_addresses, ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME), ':text_msg'=>$textmsg, ':carrier'=>$carrier, ':phone'=>$phone,':update_date'=>'1900-01-01 00:00:00',':reminder_date'=>'1900-01-01 00:00:00'));
     // Send a confirmation email or text message.
     $id = db_last_insert_id('room_reservations', 'id');
     $params = array(
@@ -512,15 +526,15 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
     $sql ="
       UPDATE {room_reservations}
       SET length = :length,
-      name = ':name',
+      name = :name,
       group_size = :group_size,
-      email_addresses = ':address',
-      update_date = ':update_date',
-      textmsg = ':text_msg',
+      email_addresses = :address,
+      update_date = :update_date,
+      textmsg = :text_msg,
       carrier = :carrier,
-      phone = ':phone'
+      phone = :phone
       WHERE id = :id";
-    $result = db_query($sql, array(':lenght'=>$length, 
+    $result = db_query($sql, array(':length'=>$length, 
                                    ':name'=>$group_name, 
                                    ':group_size'=>$group_size, 
                                    ':address'=>$email_addresses, 
@@ -564,32 +578,32 @@ function room_reservations_cancel_form(&$form_state, $res) {
   $form['room'] = array(
     '#title' => t('Room'),
     '#type' => 'item',
-    '#value' => t('@room (capacity: !capacity persons)',
+    '#markup' => t('@room (capacity: !capacity persons)',
       array('@room' => $res->room, '!capacity' => $room_capacity)),
     '#weight' => 10,
   );
   $form['display_date'] = array(
     '#title' => t('Date'),
     '#type' => 'item',
-    '#value' => t($res->displayDate),
+    '#markup' => t($res->displayDate),
     '#weight' => 20,
   );
   $form['time'] = array(
     '#title' => t('Time'),
     '#type' => 'item',
-    '#value' => t($res->displayTime),
+    '#markup' => t($res->displayTime),
     '#weight' => 30,
   );
   $form['length'] = array(
     '#title' => t('Length'),
     '#type' => 'item',
-    '#value' => t('!length minutes', array('!length' => $res->length)),
+    '#markup' => t('!length minutes', array('!length' => $res->length)),
     '#weight' => 40,
   );
   $form['group_name'] = array(
     '#title' => t('Group name'),
     '#type' => 'item',
-    '#value' => $res->name,
+    '#markup' => $res->name,
     '#weight' => 50,
   );
   $form['id'] = array(

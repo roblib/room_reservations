@@ -150,6 +150,7 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
   if (!$parameter_errors) {
     $conflicts_found
       = _room_reservations_start_conflicts($res->room, $res->date, $res->time);
+        
     if ($conflicts_found) {
       $hours = _room_reservations_hours();
       foreach ($hours as $individual_hour) {
@@ -206,7 +207,7 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
     $res->textmsg = 0;
     $res->carrier = 0;
     $res->phone = '';
-    $output .= drupal_get_form('room_reservations_res_form', 'add', $res);
+    $output .= drupal_render(drupal_get_form('room_reservations_res_form','add', $res));
   }
   return $output;
 }
@@ -316,7 +317,7 @@ function room_reservations_res_view($id) {
     $res->day = drupal_substr($res->date, 8);
     $res->year = drupal_substr($res->date, 0, 4);
     $res->textmsg = ($res->textmsg == 'Y') ? 1 : 0;
-    $output .= drupal_get_form('room_reservations_res_form', $operation, $res);
+    $output .= drupal_render(drupal_get_form('room_reservations_res_form', $operation, $res));
   }
   return $output;
 }

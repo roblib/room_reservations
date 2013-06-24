@@ -209,7 +209,7 @@ class Reservation {
       $sql = "
         SELECT * FROM {room_reservations}
         WHERE id = :id
-        AND deleted = ':deleted'
+        AND deleted = :deleted
       ";
       $record_count = 0;
       $result = db_query($sql, array(':id'=>$id, ':deleted'=>'N'));
@@ -919,7 +919,7 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
   $max_slots = $max_length / 30;
   $search_items = array();
   for ($x = 0; $x < 8; $x++) {
-    $search_items = array(
+    $search_items[] = array(
       'date' => '1999-01-01',
       'start_time' => '9999',
       'length' => 999,

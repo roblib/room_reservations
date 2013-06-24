@@ -112,8 +112,8 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
   }
   $sql = "
     SELECT * FROM room_reservations
-    WHERE date = ':date'
-    AND deleted = ':delete'
+    WHERE date = :date
+    AND deleted = :delete
     ORDER BY time
   ";
   $result = db_query($sql, array(':date' => $yyyymmdd, ':delete' => 'N'));
@@ -139,6 +139,7 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
       $key++;
       $next_time = $times[$key];
       $reservations[$room_name][$next_time]['booked'] = TRUE;
+      $reservations[$room_name][$next_time]['user_name'] = '';
       $x++;
     }
   }
