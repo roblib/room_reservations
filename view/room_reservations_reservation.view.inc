@@ -459,7 +459,6 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       :phone,:update_date,:reminder_date)";
     $result = db_query($sql, array(':date' => $yyyymmdd, ':time'=>$time, ':length'=>$length, ':room'=>$room, ':group_name'=>$group_name, ':group_size'=>$group_size, ':user_name'=>$user_name, ':email_address'=>$email_addresses, ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME), ':text_msg'=>$textmsg, ':carrier'=>$carrier, ':phone'=>$phone,':update_date'=>'1900-01-01 00:00:00',':reminder_date'=>'1900-01-01 00:00:00'));
     // Send a confirmation email or text message.
-    $id = db_last_insert_id('room_reservations', 'id');
     $params = array(
       'room' => $room,
       'month' => $month_name,
@@ -506,12 +505,12 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
          made.'), 'error');
     }
     if ($mobile_db) {
-      db_set_active('default');
+//      db_set_active('default');
     }
+
     $redirect = "room_reservations/" .
-      $month_number . "/" .
-      $day . "/" .
-      $category;
+      $month_number . "/" . $day . "/" . $category;
+    $form_state['redirect'] = $redirect;
     $form_state['redirect'] = $redirect;
   }
   // Update.
@@ -572,7 +571,7 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
  *   A reservation object that contains all the details related to the
  *   reservation being deleted.
  */
-function room_reservations_cancel_form(&$form_state, $res) {
+function room_reservations_cancel_form($node,&$form_state, $res) {
   $room_capacity = $res->roomCapacity;
   // Form definition.
   $form['room'] = array(
@@ -668,8 +667,8 @@ function room_reservations_cancel_form_submit($form_id, &$form_state) {
     }
     $result = db_query("
       UPDATE {room_reservations}
-      SET deleted = ':delete',
-      update_date = ':update_date'
+      SET deleted = :delete,
+      update_date = :update_date
       WHERE id = :id", array(':delete' => 'Y', 
                              ':update_date' => date('Y-m-d H:i:s', REQUEST_TIME), 
                              ':id'=>$id));

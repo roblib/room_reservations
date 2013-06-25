@@ -301,7 +301,8 @@ function room_reservations_permission() {
  * Implements hook_node_access().
  */
 function room_reservations_node_access($node, $op, $account) {
-  if ($node->type == 'room_reservations_category') {
+  $type = is_string($node) ? $node : $node->type;
+  if ($type == 'room_reservations_category') {
     switch ($op) {
       case 'create':
         return user_access('create room reservation category', $account);
@@ -314,7 +315,7 @@ function room_reservations_node_access($node, $op, $account) {
 
     }
   }
-  elseif ($node->type == 'room_reservations_room') {
+  elseif ($type == 'room_reservations_room') {
     switch ($op) {
       case 'create':
         return user_access('create room reservation room', $account);

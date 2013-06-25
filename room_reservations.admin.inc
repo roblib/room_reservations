@@ -1249,7 +1249,8 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
   if ($result) {
     $options = array();
     $form['carriers']['list_0'] = array(
-      '#value' => '<table><tr><th>' . t('Wireless carrier') . '</th><th>' .
+       '#type' => 'item',
+        '#markup' => '<table><tr><th>' . t('Wireless carrier') . '</th><th>' .
       t('Domain name') . '</th></tr>',
       '#weight' => -99,
     );
@@ -1260,14 +1261,16 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
       $values = explode('~', $data->value);
       $options[strval($id)] = $values[0];
       $form['carriers']['list_' . $x] = array(
-        '#value' => '<tr><td>' . check_plain($values[0]) . '</td><td>' .
+        '#type' => 'item',
+        '#markup' => '<tr><td>' . check_plain($values[0]) . '</td><td>' .
         check_plain($values[1]) . '</td></tr>',
         '#weight' => -99 + $x,
       );
       $x++;
     }
     $form['carriers']['list_' . $x] = array(
-      '#value' => '</table>',
+       '#type' => 'item',
+        '#markup' => '</table>',
       '#weight' => -99 + $x,
     );
   }
@@ -1299,6 +1302,7 @@ function room_reservations_admin_settings_sms_submit($form_id, &$form_state) {
     $error = ROOM_RESERVATIONS_RESET_ERROR_MSG;
   }
   $result = _room_reservations_set_variable('sms_option', $sms_option);
+  $errors=FALSE;
   if (!$result) {
     $errors = TRUE;
   }
