@@ -177,9 +177,9 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
   $sql = "
     SELECT id, time, length, room, name, user_name
     FROM {room_reservations}
-    WHERE date = ':previous_day'
-    AND time IN (':search_times0', ':search_times1', ':search_times2', ':search_times3', ':search_times4', ':search_times5', ':search_times6')
-    AND deleted = ':delete'
+    WHERE date = :previous_day
+    AND time IN (:search_times0, :search_times1, :search_times2, :search_times3, :search_times4, :search_times5, :search_times6)
+    AND deleted = :delete
     ORDER BY time
   ";
   $result = db_query($sql, array(':previous_day' => $previous_day, 

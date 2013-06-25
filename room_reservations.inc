@@ -910,6 +910,8 @@ function _room_reservations_first_slot_open($yyyymmdd) {
  */
 function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
   // Previous and next days.
+  
+
   $previous_day = date('Y-m-d', strtotime("$yyyymmdd -1 days"));
   // Start times of other reservations that could conflict with this one.
   // Since reservations are limited to 2 hours, we are interested in times that
@@ -937,6 +939,7 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
   }
   for ($x = 0; $x < $max_slots; $x++) {
     if ($time_slot == NULL) {
+      
       $day = $previous_day;
       $hours = _room_reservations_hours();
       $time_slot = array_pop($hours);
@@ -944,9 +947,10 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
     $search_item['date'] = $day;
     $search_item['start_time'] = $time_slot['time'];
     $search_item['length'] = 30 * $x;
-    $search_items[] = $search_item;
+    $search_items[$x] = $search_item;
     $time_slot = array_pop($hours);
   }
+  
   $mobile_db = _room_reservations_detect_mobile_db();
   if ($mobile_db) {
     $mainsite = trim(_room_reservations_get_variable('main_database'));
@@ -981,7 +985,6 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
     length > :length7)
     )
   ";
-  $conflicts_found = FALSE;
   $result = db_query($sql, array (':delete'=>'N', ':room'=>$room, 
                                   ':date0' => $search_items[0]['date'], ':time0'=> $search_items[0]['start_time'], ':length0'=> $search_items[0]['length'], 
                                   ':date1' => $search_items[1]['date'], ':time1'=> $search_items[1]['start_time'], ':length1'=> $search_items[1]['length'],
@@ -991,6 +994,7 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
                                   ':date5' => $search_items[5]['date'], ':time5'=> $search_items[5]['start_time'], ':length5'=> $search_items[5]['length'],
                                   ':date6' => $search_items[6]['date'], ':time6'=> $search_items[6]['start_time'], ':length6'=> $search_items[6]['length'],
                                   ':date7' => $search_items[7]['date'], ':time7'=> $search_items[7]['start_time'], ':length7'=> $search_items[7]['length']));
+  $conflicts_found = FALSE;
   if ($result) {
     foreach($result as $data) {
       $conflicts_found = TRUE;
@@ -1302,10 +1306,10 @@ function _room_reservations_user_reservations() {
     $sql = "
       SELECT *
       FROM {room_reservations}
-      WHERE user_name = ':user_name'
-       AND date >= ':earliest_date'
-      AND date <= ':latest_date'
-      AND deleted = ':deleted'
+      WHERE user_name = :user_name
+      AND date >= :earliest_date
+      AND date <= :latest_date
+      AND deleted = :deleted
       ORDER BY date, time
     ";
     $result = db_query($sql,array(':user_name' => $user->name, 

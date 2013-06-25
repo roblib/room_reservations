@@ -150,7 +150,6 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
   if (!$parameter_errors) {
     $conflicts_found=
         _room_reservations_start_conflicts($res->room, $res->date, $res->time);
-    $output .= $res->room." ".$res->date." ".$res->time;
     if ($conflicts_found) {
       $output .= "true";
       $hours = _room_reservations_hours();

@@ -758,6 +758,11 @@ function room_reservations_admin_settings_default_hours_submit($form_id,
   }
 }
 
+function room_reservations_admin_settings_daily_form($selected_month=NULL)
+{
+  $form = drupal_get_form('room_reservations_admin_settings_daily_hours',$selected_month);
+  return $form;
+}
 /**
  * Form constructor for the Hours / Daily Hours configuration page.
  */
@@ -1034,7 +1039,7 @@ function room_reservations_admin_settings_daily_hours_submit($form_id,
   // Select month.
   if ($form_state['clicked_button']['#value'] == t('Select a month')) {
     $form_state['redirect']
-      = 'admin/config/room_reservations/hours/daily_hours/' .
+      = 'admin/room_reservations/hours/daily_hours/' .
       $form_state['values']['month'];
   }
   // Process the daily hours for the selected month.
@@ -1302,8 +1307,8 @@ function room_reservations_admin_settings_sms_submit($form_id, &$form_state) {
     $error = ROOM_RESERVATIONS_RESET_ERROR_MSG;
   }
   $result = _room_reservations_set_variable('sms_option', $sms_option);
-  $errors=FALSE;
-  if (!$result) {
+  $errors=FALSE; 
+ if (!$result) {
     $errors = TRUE;
   }
   if ($errors) {
