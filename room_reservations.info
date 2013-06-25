@@ -2,6 +2,7 @@ name = Room Reservations
 description = Allows users to view, add, update, and delete room reservations.
 core = 7.x
 package = Other
-dependencies[] = token
+dependencies[] = token 
+dependencies[] = aggregator
 
 files[] = room_reservations.inc

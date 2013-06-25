@@ -148,9 +148,10 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
   }
   // Determine if the room and time conflicts with another reservation.
   if (!$parameter_errors) {
-    $conflicts_found
-      = _room_reservations_start_conflicts($res->room, $res->date, $res->time);
+    $conflicts_found=
+        _room_reservations_start_conflicts($res->room, $res->date, $res->time);
     if ($conflicts_found) {
+      $output .= "true";
       $hours = _room_reservations_hours();
       foreach ($hours as $individual_hour) {
         if ($individual_hour['time'] == $time) {
@@ -158,6 +159,7 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
           break;
         }
       }
+   
       $unix_timestamp = strtotime($res->date);
       $display_date = date("F j, Y", $unix_timestamp);
       drupal_set_message(t('Room @room has already been reserved for !date at
@@ -206,7 +208,7 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
     $res->textmsg = 0;
     $res->carrier = 0;
     $res->phone = '';
-    $output .= drupal_get_form('room_reservations_res_form', 'add', $res);
+    $output .= drupal_render(drupal_get_form('room_reservations_res_form','add', $res));
   }
   return $output;
 }
@@ -316,7 +318,7 @@ function room_reservations_res_view($id) {
     $res->day = drupal_substr($res->date, 8);
     $res->year = drupal_substr($res->date, 0, 4);
     $res->textmsg = ($res->textmsg == 'Y') ? 1 : 0;
-    $output .= drupal_get_form('room_reservations_res_form', $operation, $res);
+    $output .= drupal_render(drupal_get_form('room_reservations_res_form', $operation, $res));
   }
   return $output;
 }
@@ -416,7 +418,7 @@ function room_reservations_res_delete($id) {
     $res->monthNumber = drupal_substr($res->date, 5, 2);
     $res->day = drupal_substr($res->date, 8);
     $res->year = drupal_substr($res->date, 0, 4);
-    $output .= drupal_get_form('room_reservations_cancel_form', $res);
+    $output .= drupal_render(drupal_get_form('room_reservations_cancel_form', $res));
   }
   return $output;
 }

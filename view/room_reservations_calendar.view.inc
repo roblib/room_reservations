@@ -193,7 +193,7 @@ function theme_room_reservations($variables) {
     $output .= "<div id='info'><div>$calendar_text</div>
       <div><img id='arrow' src='" .
       base_path() . drupal_get_path('module', 'room_reservations') .
-      "/images/007354-blue-jelly-icon-arrows-arrow-sparkle.png' />
+      "/view/images/007354-blue-jelly-icon-arrows-arrow-sparkle.png' />
       <span id='start'>" . $reserve_room_instructions_text .
       '</span></div></div>';
     // Calendar date.
@@ -305,12 +305,13 @@ function theme_room_reservations($variables) {
               $booked_class = 'closed';
             }
             // The time slot can be reserved by the current user.
+            $viewable_class=null;
             if ($booked_class == 'reservable') {
               $link = "<a href='" . $base_url . "/room_reservations/add/" .
                 $month_number . "/" . $xday . "/" .
                 $time_slot['time'] . "/" . $room['name'] . "'><img src='" .
                 base_path() . drupal_get_path('module', 'room_reservations') .
-                "/images/clear.png' /></a>";
+                "/view/images/clear.png' /></a>";
               $viewable = '';
             }
             // The time slot can be reserved by the current user,
@@ -321,7 +322,7 @@ function theme_room_reservations($variables) {
                 $month_number . "/" . $xday . "/" .
                 $time_slot['time'] . "/" . $room['name'] . "'><img src='" .
                 base_path() . drupal_get_path('module', 'room_reservations') .
-                "/images/clear.png' /></a>";
+                "/view/images/clear.png' /></a>";
               $viewable = '';
             }
             elseif ($booked_class == 'closed') {
@@ -329,7 +330,7 @@ function theme_room_reservations($variables) {
             }
             else {
               // The time slot has a reservation that can be viewed by the
-              // current user.
+              // current user. 
               $user_name = $reservations[$room_name][$time]['user_name'];
               $viewable_class = (($full_access) ||
                 ($user_login_name == $user_name)) ? 'viewable' : '';

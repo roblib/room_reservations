@@ -242,8 +242,8 @@ function room_reservations_init() {
  */
 function room_reservations_node_info() {
   return array(
-    'room_reservation_category' => array(
-      'name' => t('Room Reservation Category'),
+    'room_reservations_category' => array(
+      'name' => t('Room Reservations Category'),
       'base' => 'room_reservations',
       'description' => t('Category of reservable rooms.'),
       'has_title' => TRUE,
@@ -252,8 +252,8 @@ function room_reservations_node_info() {
       'body_label' => t('Displayed category name'),
       'locked' => TRUE,
     ),
-    'room_reservation_room' => array(
-      'name' => t('Room Reservation Room'),
+    'room_reservations_room' => array(
+      'name' => t('Room Reservations Room'),
       'base' => 'room_reservations',
       'description' => t('A reservable room.'),
       'has_title' => TRUE,
@@ -301,7 +301,8 @@ function room_reservations_permission() {
  * Implements hook_node_access().
  */
 function room_reservations_node_access($node, $op, $account) {
-  if ($node->type == 'room_reservation_category') {
+  $type = is_string($node) ? $node : $node->type;
+  if ($type == 'room_reservations_category') {
     switch ($op) {
       case 'create':
         return user_access('create room reservation category', $account);
@@ -314,7 +315,7 @@ function room_reservations_node_access($node, $op, $account) {
 
     }
   }
-  elseif ($node->type == 'room_reservation_room') {
+  elseif ($type == 'room_reservations_room') {
     switch ($op) {
       case 'create':
         return user_access('create room reservation room', $account);
@@ -421,6 +422,14 @@ function room_reservations_mail($key, &$message, $params) {
  * Implements hook_cron().
  */
 function room_reservations_cron() {
+  $result = db_query('SELECT * FROM {aggregator_feed} WHERE checked + refresh < :time AND refresh <> :never', array(
+    ':time' => REQUEST_TIME,
+    ':never' => AGGREGATOR_CLEAR_NEVER,
+  ));
+  $queue = DrupalQueue::get('aggregator_feeds');
+  foreach ($result as $feed) {
+    $queue->createItem($feed);
+  }
   // Send reservation reminders.
   $send_reminders = _room_reservations_get_variable('send_reminders');
   $last_reminders_sent = _room_reservations_get_variable('last_reminders_sent');
@@ -445,16 +454,16 @@ function room_reservations_cron() {
     $sql = "
       SELECT *
       FROM {room_reservations}
-      WHERE date = '%s'
-      AND reminder_date = '%s'
-      AND create_date < '%s'
-      AND deleted = '%s'
+      WHERE date = :date
+      AND reminder_date = :reminder_date
+      AND create_date < :create_date
+      AND deleted = :deleted
     ";
     $record_count = 0;
     $hours = _room_reservations_hours();
-    $result = db_query($sql, $tomorrow, $no_reminder_sent, $cutoff, $not_deleted);
+    $result = db_query($sql, array(':date'=>$tomorrow, ':reminder_date'=>$no_reminder_sent, ':create_date'=>$cutoff, ':deleted'=>$not_deleted));
     if ($result) {
-      while ($data = db_fetch_object($result)) {
+      foreach ($result as $data) {
         $id = $data->id;
         $date = $data->date;
         $time = $data->time;
@@ -520,10 +529,10 @@ function room_reservations_cron() {
         $now = date("Y-m-d H:i");
         $sql2 = "
           UPDATE {room_reservations}
-          SET reminder_date = '%s'
-          WHERE id = %d
+          SET reminder_date = :reminder_date
+          WHERE id = :id
         ";
-        $result2 = db_query($sql2, $now, $id);
+        $result2 = db_query($sql2, array(':reminder_date'=>$now, ':id'=>$id));
       }
     }
     _room_reservations_set_variable('last_reminders_sent', $today);
@@ -574,8 +583,9 @@ function room_reservations_cron() {
  * Implements hook_form().
  */
 function room_reservations_form($node) {
+  $form = null;
   $type = node_type_get_type($node);
-  if ($node->type == 'room_reservation_category') {
+  if ($node->type == 'room_reservations_category') {
     // Category title cannot be updated.
     if ($node->title) {
       $form['title'] = array(
@@ -598,10 +608,10 @@ function room_reservations_form($node) {
         '#weight' => 0,
       );
     }
-    $form['body'] = array(
+    $form['display_name'] = array(
       '#type' => 'textfield',
       '#title' => check_plain($type->body_label),
-      '#default_value' => $node->body,
+      '#default_value' => $node->display_name,
       '#required' => TRUE,
       '#size' => 50,
       '#maxlength' => 50,
@@ -621,7 +631,7 @@ function room_reservations_form($node) {
       '#weight' => 10,
     );
   }
-  elseif ($node->type == 'room_reservation_room') {
+  elseif ($node->type == 'room_reservations_room') {
     $categories = _room_reservations_categories();
     $options = array();
     foreach ($categories as $category) {
@@ -640,10 +650,10 @@ function room_reservations_form($node) {
         reservation calendar and form.  10 characters or less.'),
       '#weight' => 0,
     );
-    $form['body'] = array(
+    $form['display_name'] = array(
       '#type' => 'textarea',
       '#title' => check_plain($type->body_label),
-      '#default_value' => $node->body,
+      '#default_value' => $node->display_name,
       '#required' => FALSE,
       '#rows' => 5,
       '#description' => t('Information about the room that will help your
@@ -678,12 +688,12 @@ function room_reservations_form($node) {
  * Implements hook_validate().
  */
 function room_reservations_validate($node) {
-  if ($node->type == 'room_reservation_room') {
+  if ($node->type == 'room_reservations_room') {
     if (!ctype_digit($node->capacity)) {
       form_set_error('capacity', t('Capacity must be numeric.'));
     }
   }
-  elseif ($node->type == 'room_reservation_category') {
+  elseif ($node->type == 'room_reservations_category') {
     if (!ctype_digit($node->display_order)) {
       form_set_error('order', t('Display order must be numeric.'));
     }
@@ -694,19 +704,29 @@ function room_reservations_validate($node) {
  * Implements hook_insert().
  */
 function room_reservations_insert($node) {
-  if ($node->type == 'room_reservation_category') {
+  if ($node->type == 'room_reservations_category') {
     db_query("
       INSERT INTO {room_reservations_category}
       (nid, vid, display_order)
-      VALUES (%d, %d, %d)
-      ", $node->nid, $node->vid, $node->display_order);
+      VALUES (:nid, :vid, :display_order)
+      ", array(':nid'=>$node->nid, ':vid'=>$node->vid, ':display_order'=>$node->display_order));
+    db_query("
+      UPDATE {node_revision}
+      SET log = :log
+      WHERE vid = :vid
+      ", array(':log'=>$node->display_name, ':vid'=>$node->vid));
   }
-  elseif ($node->type == 'room_reservation_room') {
+  elseif ($node->type == 'room_reservations_room') {
     db_query("
       INSERT INTO {room_reservations_room}
       (nid, vid, category, capacity)
-      VALUES (%d, %d, '%s', %d)
-      ", $node->nid, $node->vid, $node->category, $node->capacity);
+      VALUES (:nid, :vid, :catalogry, :capacity)
+      ", array(':nid'=>$node->nid, ':vid'=>$node->vid, ':catalogry' => $node->category, ':capacity'=>$node->capacity));
+    db_query("
+        UPDATE {node_revision}
+        SET log = :log
+        WHERE vid = :vid
+        ", array(':log' => $node->display_name, ':vid' => $node->vid));
   }
 }
 
@@ -714,29 +734,39 @@ function room_reservations_insert($node) {
  * Implements hook_update().
  */
 function room_reservations_update($node) {
-  if ($node->type == 'room_reservation_category') {
+  if ($node->type == 'room_reservations_category') {
     if ($node->revision) {
       room_reservations_insert($node);
     }
     else {
       db_query("
         UPDATE {room_reservations_category}
-        SET display_order = %d
-        WHERE vid = %d
-        ", $node->display_order, $node->vid);
+        SET display_order = :display_order
+        WHERE vid = :vid
+        ", array(':display_order' => $node->display_order, ':vid' => $node->vid));
+      db_query("
+        UPDATE {node_revision}
+        SET log = :log
+        WHERE vid = :vid
+        ", array(':log' => $node->display_name, ':vid' => $node->vid));
     }
   }
-  elseif ($node->type == 'room_reservation_room') {
+  elseif ($node->type == 'room_reservations_room') {
     if ($node->revision) {
       room_reservations_insert($node);
     }
     else {
       db_query("
         UPDATE {room_reservations_room}
-        SET category = '%s',
-        capacity = %d
-        WHERE vid = %d
-        ", $node->category, $node->capacity, $node->vid);
+        SET category = :category,
+        capacity = :capacity
+        WHERE vid = :vid
+        ",array(':category'=> $node->category, ':capacity' => $node->capacity, 'vid'=>$node->vid));
+      db_query("
+        UPDATE {node_revision}
+        SET log = :log
+        WHERE vid = :vid
+        ", array(':log' => $node->display_name, ':vid' => $node->vid));
     }
   }
 }
@@ -745,17 +775,17 @@ function room_reservations_update($node) {
  * Implements hook_delete().
  */
 function room_reservations_delete($node) {
-  if ($node->type == 'room_reservation_category') {
+  if ($node->type == 'room_reservations_category') {
     db_query("
       DELETE FROM {room_reservations_category}
-      WHERE nid = %d
-      ", $node->nid);
+      WHERE nid = :nid
+      ", array(':nid'=>$node->nid));
   }
-  elseif ($node->type == 'room_reservation_room') {
+  elseif ($node->type == 'room_reservations_room') {
     db_query("
       DELETE FROM {room_reservations_room}
-      WHERE nid = %d
-      ", $node->nid);
+      WHERE nid = :nid
+      ", array(':nid'=>$node->nid));
   }
 }
 
@@ -764,20 +794,20 @@ function room_reservations_delete($node) {
  */
 function room_reservations_node_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
   // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
-  if ($node->type == 'room_reservation_category') {
+  if ($node->type == 'room_reservations_category') {
     if ($op == 'delete revision') {
       db_query("
         DELETE FROM {room_reservations_category}
-        WHERE vid = %d
+        WHERE vid = :vid
         ", $node->vid);
     }
   }
-  elseif ($node->type == 'room_reservation_room') {
+  elseif ($node->type == 'room_reservations_room') {
     if ($op == 'delete revision') {
       db_query("
         DELETE FROM {room_reservations_room}
-        WHERE vid = %d
-        ", $node->vid);
+        WHERE vid = :vid
+        ", array(':vid'=>$node->vid));
     }
   }
 }
@@ -785,38 +815,63 @@ function room_reservations_node_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
 /**
  * Implements hook_load().
  */
+
 function room_reservations_load($nodes) {
   // ERROR: return statement not found in hook_load
-  if ($node->type == 'room_reservation_category') {
-    return db_fetch_object(
-        db_query("
-        SELECT display_order
+  foreach ($nodes as $node)
+  {
+    if ($node->type == 'room_reservations_category') {
+      $result = db_query("
+        SELECT {nid,display_order}
         FROM {room_reservations_category}
-        WHERE vid = %d
-        ", $node->vid)
-    );
-  }
-  elseif ($node->type == 'room_reservation_room') {
-    return db_fetch_object(
-        db_query("
-        SELECT category, capacity
+        WHERE vid = :vid
+        ", array(':vid' => $node->vid));
+      foreach ($result as $data) {
+        $nodes[$data->nid]->display_order=$data->display_order;
+      }
+      $result = db_query("
+        SELECT {nid,log}
+        FROM {node_revision}
+        WHERE vid = :vid
+        ", array(':vid' => $node->vid));
+      foreach ($result as $data) {
+        $nodes[$data->nid]->display_name=$data->log;
+      }
+    }
+    elseif ($node->type == 'room_reservations_room') {
+
+      $result = db_query("
+        SELECT {nid, category, capacity}
         FROM {room_reservations_room}
-        WHERE vid = %d
-        ", $node->vid)
-    );
+        WHERE vid = :vid
+        ", array(':vid' => $node->vid));
+      foreach ($result as $data) {
+        $nodes[$data->nid]->category = $data->category;
+        $nodes[$data->nid]->capacity = $data->capacity;
+      }
+      $result = db_query("
+        SELECT {nid,log}
+        FROM {node_revision}
+        WHERE vid = :vid
+        ", array(':vid' => $node->vid));
+      foreach ($result as $data) {
+        $nodes[$data->nid]->display_name=$data->log;
+      }
+    }
   }
+
 }
 
 /**
  * Implements hook_view().
  */
-function room_reservations_view($node, $teaser = FALSE, $page = FALSE) {
-  if ($node->type == 'room_reservation_category') {
-    if ($teaser) {
-      $node = node_prepare($node, $teaser);
+function room_reservations_view($node, $view_mode) {
+  if ($node->type == 'room_reservations_category') {
+    if ($view_mode=='full' ){
+//      $node = node_prepare($node, $teaser);
     }
     else {
-      $node = node_prepare($node, $teaser);
+//      $node = node_prepare($node, $teaser);
       $node->content['order'] = array(
         '#value' => '<b>' . t('Display order') . ':</b>  ' .
         $node->display_order . '<br /><br />',
@@ -824,12 +879,12 @@ function room_reservations_view($node, $teaser = FALSE, $page = FALSE) {
       );
     }
   }
-  elseif ($node->type == 'room_reservation_room') {
-    if ($teaser) {
-      $node = node_prepare($node, $teaser);
+  elseif ($node->type == 'room_reservations_room') {
+    if ($view_mode=='full' ) {
+//      $node = node_prepare($node, $teaser);
     }
     else {
-      $node = node_prepare($node, $teaser);
+//      $node = node_prepare($node, $teaser);
       $display_category = '';
       $categories = _room_reservations_categories();
       foreach ($categories as $category) {
