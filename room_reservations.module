@@ -422,14 +422,7 @@ function room_reservations_mail($key, &$message, $params) {
  * Implements hook_cron().
  */
 function room_reservations_cron() {
-  $result = db_query('SELECT * FROM {aggregator_feed} WHERE checked + refresh < :time AND refresh <> :never', array(
-    ':time' => REQUEST_TIME,
-    ':never' => AGGREGATOR_CLEAR_NEVER,
-  ));
-  $queue = DrupalQueue::get('aggregator_feeds');
-  foreach ($result as $feed) {
-    $queue->createItem($feed);
-  }
+  
   // Send reservation reminders.
   $send_reminders = _room_reservations_get_variable('send_reminders');
   $last_reminders_sent = _room_reservations_get_variable('last_reminders_sent');
@@ -449,7 +442,7 @@ function room_reservations_cron() {
     $today = date("Y-m-d");
     $cutoff = $today . ' ' . $reminder_cutoff;
     $tomorrow = date('Y-m-d', strtotime("now +1 days"));
-    $no_reminder_sent = '0000-00-00 00:00:00';
+    $no_reminder_sent = '1900-01-01 00:00:00';
     $not_deleted = 'N';
     $sql = "
       SELECT *
@@ -611,7 +604,7 @@ function room_reservations_form($node) {
     $form['display_name'] = array(
       '#type' => 'textfield',
       '#title' => check_plain($type->body_label),
-      '#default_value' => $node->display_name,
+      '#default_value' => "",
       '#required' => TRUE,
       '#size' => 50,
       '#maxlength' => 50,
@@ -622,7 +615,7 @@ function room_reservations_form($node) {
     $form['display_order'] = array(
       '#type' => 'textfield',
       '#title' => t('Display order'),
-      '#default_value' => $node->display_order,
+      '#default_value' => "",
       '#required' => TRUE,
       '#size' => 2,
       '#maxlength' => 2,
@@ -653,7 +646,7 @@ function room_reservations_form($node) {
     $form['display_name'] = array(
       '#type' => 'textarea',
       '#title' => check_plain($type->body_label),
-      '#default_value' => $node->display_name,
+      '#default_value' => "",
       '#required' => FALSE,
       '#rows' => 5,
       '#description' => t('Information about the room that will help your
@@ -673,7 +666,7 @@ function room_reservations_form($node) {
     $form['capacity'] = array(
       '#title' => t('Capacity'),
       '#type' => 'textfield',
-      '#default_value' => $node->capacity,
+      '#default_value' => "",
       '#required' => TRUE,
       '#size' => 2,
       '#maxlength' => 2,

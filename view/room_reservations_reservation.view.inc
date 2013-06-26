@@ -213,8 +213,7 @@ function room_reservations_res_form($node,&$form_state, $operation, $res) {
       );
     }
   }
-  else {
-  }
+
   $mobile = _room_reservations_detect_mobile();
   if ($mobile) {
     $reminder_columns = 30;

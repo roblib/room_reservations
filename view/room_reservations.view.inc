@@ -23,7 +23,7 @@
  * @param string $selected_category
  *   The current category the user has selected, if any.
  */
-function room_reservations_select_room_date_form(&$form_state, $building_hours,
+function room_reservations_select_room_date_form($form,&$form_state, $building_hours,
   $dates, $rooms, $categories, $selected_category) {
   // Select box options.
   $date_options = array();
