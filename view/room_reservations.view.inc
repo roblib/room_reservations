@@ -116,6 +116,9 @@ function room_reservations_select_room_date_form_submit($form_id,
  */
 function theme_room_reservations_list($variables) {
   $user = $variables['0'];
+  $base_url =$variables['1'];
+  $user_reservations = $variables['2'];
+  $count = $variables['3'];
   // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
   $output = '';
   if ($user->uid) {
@@ -160,8 +163,9 @@ function theme_room_reservations_list($variables) {
  */
 function theme_room_reservations_descriptions($variables) {
   $categories = $variables['0'];
+  $rooms = $variables['1'];
   // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
-  $output .= '<br />';
+  $output = '<br />';
   foreach ($categories as $category) {
     $output .= '<h2>' . t($category['display']) . '</h2><br />';
     foreach ($rooms as $room) {
