@@ -1459,13 +1459,14 @@ function _room_reservations_send_sms($message_type, $params) {
   $subject = _room_reservations_replace_tokens(check_plain(
     _room_reservations_get_variable('confirmation_header_text_sms')), $params);
   $day_of_week = drupal_substr($params['day_of_week'], 0, 3) . '.';
+  $message_body="";
   if ($message_type == 'confirmation') {
     $message_body = _room_reservations_replace_tokens(check_plain(
-      _room_reservations_get_variable('confirmation_text_sms')), $params);
+      _room_reservations_get_variable('confirmation_owner_text_sms')), $params);
   }
   elseif ($message_type == 'reminder') {
     $message_body = _room_reservations_replace_tokens(check_plain(
-      _room_reservations_get_variable('reminder_text_sms')), $params);
+      _room_reservations_get_variable('reminder_owner_text_sms')), $params);
   }
   $message = wordwrap($message_body, 70);
   $from = $from = check_plain(

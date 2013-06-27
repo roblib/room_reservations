@@ -603,8 +603,8 @@ function room_reservations_form($node) {
     }
     $form['display_name'] = array(
       '#type' => 'textfield',
-      '#title' => check_plain($type->body_label),
-      '#default_value' => "",
+      '#title' => check_plain(isset($type->body_label)?$type->body_label:'display_category_name'),
+      '#default_value' => isset($node->display_name)?$node->display_name:'',
       '#required' => TRUE,
       '#size' => 50,
       '#maxlength' => 50,
@@ -615,7 +615,7 @@ function room_reservations_form($node) {
     $form['display_order'] = array(
       '#type' => 'textfield',
       '#title' => t('Display order'),
-      '#default_value' => "",
+      '#default_value' => isset($node->display_order)?$node->display_order:0,
       '#required' => TRUE,
       '#size' => 2,
       '#maxlength' => 2,
@@ -645,8 +645,8 @@ function room_reservations_form($node) {
     );
     $form['display_name'] = array(
       '#type' => 'textarea',
-      '#title' => check_plain($type->body_label),
-      '#default_value' => "",
+      '#title' => check_plain(isset($type->body_label)?$type->body_label:'display_room_name'),
+      '#default_value' => isset($node->display_name)?$node->display_name:'',
       '#required' => FALSE,
       '#rows' => 5,
       '#description' => t('Information about the room that will help your
@@ -666,7 +666,7 @@ function room_reservations_form($node) {
     $form['capacity'] = array(
       '#title' => t('Capacity'),
       '#type' => 'textfield',
-      '#default_value' => "",
+      '#default_value' => isset($node->capacity) ? $node->capacity : 1,
       '#required' => TRUE,
       '#size' => 2,
       '#maxlength' => 2,
