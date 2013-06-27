@@ -22,7 +22,7 @@ function room_reservations_res_form($node,&$form_state, $operation, $res) {
   if (($operation == 'add') || ($operation == 'update')) {
     // Options for number of persons in group, from 2 to room capacity.
     $number_persons_options = array();
-    for ($x = 2; $x <= $res->roomCapacity; $x++) {
+    for ($x = 1; $x <= $res->roomCapacity; $x++) {
       $number_persons_options[$x] = $x;
     }
     // Valid lengths of time.

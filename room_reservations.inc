@@ -1093,12 +1093,16 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
     $mainsite = trim(_room_reservations_get_variable('main_database'));
     db_set_active($mainsite);
   }
-  for ($x = 1; $x < $max_slots; $x++) {
+  for ($x = 0; $x < $max_slots; $x++) {
     $valid_length = $valid_lengths[$x];
     if ($valid_length['is_valid']) {
       $search_item = $search_items[$x];
       $date = $search_item['date'];
       $start_time = $search_item['start_time'];
+      if(!$id)
+      {
+        $id = 0;
+      }
       $sql = "
         SELECT id
         FROM {room_reservations}
