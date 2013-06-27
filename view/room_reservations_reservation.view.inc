@@ -403,7 +403,12 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
   $length = $form_state['values']['length'];
   $room = $form_state['values']['room_name'];
   $group_name = $form_state['values']['group_name'];
-  $group_size = $form_state['values']['group_size'];
+  if (isset($form_state['values']['group_size'])) {
+    $group_size = $form_state['values']['group_size'];
+  }
+  else {
+    $group_size = 0;
+  }
   $user_name = $form_state['values']['user_name_hold'];
   $category = $form_state['values']['category'];
   $yyyymmdd = $form_state['values']['yyyymmdd'];
