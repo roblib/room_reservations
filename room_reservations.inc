@@ -1093,12 +1093,16 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
     $mainsite = trim(_room_reservations_get_variable('main_database'));
     db_set_active($mainsite);
   }
-  for ($x = 1; $x < $max_slots; $x++) {
+  for ($x = 0; $x < $max_slots; $x++) {
     $valid_length = $valid_lengths[$x];
     if ($valid_length['is_valid']) {
       $search_item = $search_items[$x];
       $date = $search_item['date'];
       $start_time = $search_item['start_time'];
+      if(!$id)
+      {
+        $id = 0;
+      }
       $sql = "
         SELECT id
         FROM {room_reservations}
@@ -1459,13 +1463,14 @@ function _room_reservations_send_sms($message_type, $params) {
   $subject = _room_reservations_replace_tokens(check_plain(
     _room_reservations_get_variable('confirmation_header_text_sms')), $params);
   $day_of_week = drupal_substr($params['day_of_week'], 0, 3) . '.';
+  $message_body="";
   if ($message_type == 'confirmation') {
     $message_body = _room_reservations_replace_tokens(check_plain(
-      _room_reservations_get_variable('confirmation_text_sms')), $params);
+      _room_reservations_get_variable('confirmation_owner_text_sms')), $params);
   }
   elseif ($message_type == 'reminder') {
     $message_body = _room_reservations_replace_tokens(check_plain(
-      _room_reservations_get_variable('reminder_text_sms')), $params);
+      _room_reservations_get_variable('reminder_owner_text_sms')), $params);
   }
   $message = wordwrap($message_body, 70);
   $from = $from = check_plain(

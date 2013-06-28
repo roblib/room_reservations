@@ -1773,7 +1773,8 @@ function room_reservations_admin_settings_text($form, &$form_state) {
     '#weight' => -100,
   );
   $form['tokens']['values'] = array(
-    '#value' => $token_display,
+    '#type'=>'item',
+    '#markup' => $token_display,
   );
   $form['confirmation_header'] = array(
     '#title' => t('Confirmation heading'),

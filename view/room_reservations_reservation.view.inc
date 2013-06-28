@@ -22,7 +22,7 @@ function room_reservations_res_form($node,&$form_state, $operation, $res) {
   if (($operation == 'add') || ($operation == 'update')) {
     // Options for number of persons in group, from 2 to room capacity.
     $number_persons_options = array();
-    for ($x = 2; $x <= $res->roomCapacity; $x++) {
+    for ($x = 1; $x <= $res->roomCapacity; $x++) {
       $number_persons_options[$x] = $x;
     }
     // Valid lengths of time.
@@ -213,8 +213,7 @@ function room_reservations_res_form($node,&$form_state, $operation, $res) {
       );
     }
   }
-  else {
-  }
+
   $mobile = _room_reservations_detect_mobile();
   if ($mobile) {
     $reminder_columns = 30;
@@ -404,7 +403,12 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
   $length = $form_state['values']['length'];
   $room = $form_state['values']['room_name'];
   $group_name = $form_state['values']['group_name'];
-  $group_size = $form_state['values']['group_size'];
+  if (isset($form_state['values']['group_size'])) {
+    $group_size = $form_state['values']['group_size'];
+  }
+  else {
+    $group_size = 0;
+  }
   $user_name = $form_state['values']['user_name_hold'];
   $category = $form_state['values']['category'];
   $yyyymmdd = $form_state['values']['yyyymmdd'];
