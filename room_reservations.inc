@@ -623,10 +623,10 @@ function _room_reservations_facility_hours($reset = FALSE) {
       $yyyymmdd = $yyyymmdd_yyyy . '-' .
         $yyyymmdd_mm . '-' .
         $yyyymmdd_dd;
-      $first_shift_open = $mo_hours[($start + ($x * 5) + 1)];
-      $first_shift_close = $mo_hours[($start + ($x * 5) + 2)];
-      $second_shift_open = $mo_hours[($start + ($x * 5) + 3)];
-      $second_shift_close = $mo_hours[($start + ($x * 5) + 4)];
+      $first_shift_open = isset($mo_hours[($start + ($x * 5) + 1)])?$mo_hours[($start + ($x * 5) + 1)]:'9999';
+      $first_shift_close = isset($mo_hours[($start + ($x * 5) + 2)])?$mo_hours[($start + ($x * 5) + 2)]:'9999';
+      $second_shift_open = isset($mo_hours[($start + ($x * 5) + 3)])?$mo_hours[($start + ($x * 5) + 3)]:'9999';
+      $second_shift_close = isset($mo_hours[($start + ($x * 5) + 4)])?$mo_hours[($start + ($x * 5) + 4)]:'9999';
       if (($first_shift_open == '9999') &&
         ($first_shift_close == '9999') &&
         ($second_shift_open == '9999') &&
