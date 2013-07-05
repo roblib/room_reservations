@@ -16,6 +16,50 @@ function room_reservations_install() {
   //drupal_install_schema('room_reservations_category');
   //drupal_install_schema('room_reservations_room');
  // drupal_install_schema('room_reservations_variables');
+  $current_mo = date('m');
+  $current_year = date('Y');
+  for($i=0;$i<5;$i++)
+  {
+    $realmonth=  intval($current_mo)+$i;
+    $realyear = intval($current_year);
+    while($realmonth>12)
+    {
+      $realmonth-=12;
+      $realyear++;
+    }
+    $str_real_month = ''.$realmonth;
+    $str_real_year = ''.$realyear;
+    if ($realmonth<10)
+    {
+      $str_real_month = '0'.$realmonth;
+    }
+    
+    $month_value = $str_real_year . '_' . $str_real_month;
+    $str_month_name = 'monthly_hours_' . $month_value;
+    
+    if (!_room_reservations_get_variable($str_month_name)) {
+      $days = date('t', mktime(0, 0, 0, $str_real_month, 1, $str_real_year));
+      $create_mo_hours = array();
+      $default_hours = unserialize(_room_reservations_get_variable(
+      'default_hours'));
+      for ($day = 0; $day < $days; $day++) {
+    
+        $dow = date('w', mktime(0, 0, 0, $str_real_month, $day + 1, $str_real_year));
+        $day_first_open = isset($default_hours[($dow * 4) + 0])?$default_hours[($dow * 4) + 0]:'9999';
+        $day_first_close = isset($default_hours[($dow * 4) + 1])?$default_hours[($dow * 4) + 1]:'9999';
+        $day_second_open = isset($default_hours[($dow * 4) + 2])?$default_hours[($dow * 4) + 2]:'9999';
+        $day_second_close = isset($default_hours[($dow * 4) + 3])?$default_hours[($dow * 4) + 3]:'9999';
+        // Update the monthly hours record.
+        $create_mo_hours[($day * 5)] = 'D';
+        $create_mo_hours[($day * 5) + 1] = $day_first_open;
+        $create_mo_hours[($day * 5) + 2] = $day_first_close;
+        $create_mo_hours[($day * 5) + 3] = $day_second_open;
+        $create_mo_hours[($day * 5) + 4] = $day_second_close;
+      }
+      $result = _room_reservations_set_variable($str_month_name,
+          serialize($create_mo_hours));
+    }
+  }
 }
 
 /**
@@ -27,6 +71,30 @@ function room_reservations_uninstall() {
  // drupal_uninstall_schema('room_reservations_category');
  // drupal_uninstall_schema('room_reservations_room');
  // drupal_uninstall_schema('room_reservations_variables');
+  $sql = "
+    SELECT nid 
+    FROM {node}
+    WHERE type = 'room_reservations_category'";
+  $result = db_query($sql);
+  if($result)
+  {
+    foreach ($result as $data)
+    {
+      node_delete($data->nid);
+    }
+  }
+  $sql = "
+    SELECT nid 
+    FROM {node}
+    WHERE type = 'room_reservations_room'";
+  $result = db_query($sql);
+  if($result)
+  {
+    foreach ($result as $data)
+    {
+      node_delete($data->nid);
+    }
+  }
   variable_del('room_reservations_advance_days');
   variable_del('room_reservations_calendar_text');
   variable_del('room_reservations_emp_roles');

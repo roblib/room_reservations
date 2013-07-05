@@ -422,6 +422,52 @@ function room_reservations_mail($key, &$message, $params) {
  * Implements hook_cron().
  */
 function room_reservations_cron() {
+  //set defult mouth hours
+  $current_mo = date('m');
+  $current_year = date('Y');
+  for($i=0;$i<5;$i++)
+  {
+    $realmonth=  intval($current_mo)+$i;
+    $realyear = intval($current_year);
+    while($realmonth>12)
+    {
+      $realmonth-=12;
+      $realyear++;
+    }
+    $str_real_month = ''.$realmonth;
+    $str_real_year = ''.$realyear;
+    if ($realmonth<10)
+    {
+      $str_real_month = '0'.$realmonth;
+    }
+    
+    $month_value = $str_real_year . '_' . $str_real_month;
+    $str_month_name = 'monthly_hours_' . $month_value;
+    
+    if (!_room_reservations_get_variable($str_month_name)) {
+      $days = date('t', mktime(0, 0, 0, $str_real_month, 1, $str_real_year));
+      $create_mo_hours = array();
+      $default_hours = unserialize(_room_reservations_get_variable(
+      'default_hours'));
+      for ($day = 0; $day < $days; $day++) {
+    
+        $dow = date('w', mktime(0, 0, 0, $str_real_month, $day + 1, $str_real_year));
+        $day_first_open = isset($default_hours[($dow * 4) + 0])?$default_hours[($dow * 4) + 0]:'9999';
+        $day_first_close = isset($default_hours[($dow * 4) + 1])?$default_hours[($dow * 4) + 1]:'9999';
+        $day_second_open = isset($default_hours[($dow * 4) + 2])?$default_hours[($dow * 4) + 2]:'9999';
+        $day_second_close = isset($default_hours[($dow * 4) + 3])?$default_hours[($dow * 4) + 3]:'9999';
+        // Update the monthly hours record.
+        $create_mo_hours[($day * 5)] = 'D';
+        $create_mo_hours[($day * 5) + 1] = $day_first_open;
+        $create_mo_hours[($day * 5) + 2] = $day_first_close;
+        $create_mo_hours[($day * 5) + 3] = $day_second_open;
+        $create_mo_hours[($day * 5) + 4] = $day_second_close;
+      }
+      $result = _room_reservations_set_variable($str_month_name,
+          serialize($create_mo_hours));
+    }
+  }
+  
   
   // Send reservation reminders.
   $send_reminders = _room_reservations_get_variable('send_reminders');
@@ -867,7 +913,7 @@ function room_reservations_view($node, $view_mode) {
 //      $node = node_prepare($node, $teaser);
       $node->content['order'] = array(
         '#value' => '<b>' . t('Display order') . ':</b>  ' .
-        $node->display_order . '<br /><br />',
+        isset($node->display_order)?$node->display_order:'' . '<br /><br />',
         '#weight' => 10,
       );
     }
@@ -894,7 +940,7 @@ function room_reservations_view($node, $view_mode) {
         '#weight' => 10,
       );
       $node->content['capacity'] = array(
-        '#value' => '<b>' . t('Capacity') . ':</b>  ' . $node->capacity .
+        '#value' => '<b>' . t('Capacity') . ':</b>  ' . isset($node->capacity)?$node->capacity:'' .
         '<br /><br />',
         '#weight' => 15,
       );
