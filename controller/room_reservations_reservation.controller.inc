@@ -208,7 +208,8 @@ function room_reservations_res_add($month_number, $xday, $time, $xroom) {
     $res->textmsg = 0;
     $res->carrier = 0;
     $res->phone = '';
-    $output .= drupal_render(drupal_get_form('room_reservations_res_form','add', $res));
+    $form =drupal_get_form('room_reservations_res_form','add', $res);
+    $output .= drupal_render($form);
   }
   return $output;
 }
@@ -318,7 +319,8 @@ function room_reservations_res_view($id) {
     $res->day = drupal_substr($res->date, 8);
     $res->year = drupal_substr($res->date, 0, 4);
     $res->textmsg = ($res->textmsg == 'Y') ? 1 : 0;
-    $output .= drupal_render(drupal_get_form('room_reservations_res_form', $operation, $res));
+    $form = drupal_get_form('room_reservations_res_form', $operation, $res);
+    $output .= drupal_render($form);
   }
   return $output;
 }
@@ -418,7 +420,8 @@ function room_reservations_res_delete($id) {
     $res->monthNumber = drupal_substr($res->date, 5, 2);
     $res->day = drupal_substr($res->date, 8);
     $res->year = drupal_substr($res->date, 0, 4);
-    $output .= drupal_render(drupal_get_form('room_reservations_cancel_form', $res));
+    $form= drupal_get_form('room_reservations_cancel_form', $res);
+    $output .= drupal_render($form);
   }
   return $output;
 }
