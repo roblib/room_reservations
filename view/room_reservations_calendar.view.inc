@@ -91,8 +91,9 @@ function theme_room_reservations($variables) {
       }
     }
     // Form to change day and or room.
-    $output .= drupal_render(drupal_get_form('room_reservations_select_room_date_form',
-      $building_hours, $dates, $rooms, $categories, $selected_category));
+    $form = drupal_get_form('room_reservations_select_room_date_form',
+      $building_hours, $dates, $rooms, $categories, $selected_category);
+    $output .= drupal_render($form);
     // Calendar date.
     $display_date = $day_of_week . ', ' . $month . ' ' . $xday . ', ' . $year;
     $output .= "<b>" . t('Reservation Calendar') . "</b>
