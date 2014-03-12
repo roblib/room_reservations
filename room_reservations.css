@@ -80,7 +80,8 @@
   border: 1px solid #999999;
   clear: left;
   overflow: auto;
-  width: 810px;
+  /*width: 810px;*/
+  width:810px;
 }
 
 #rooms .panel {
@@ -110,7 +111,9 @@
 }
 
 #rooms div.grid-column {
-  max-width: 97px;
+  /*max-width: 97px;*/
+  width:96px;
+  /*border:1px solid red;*/
 }
 
 #rooms .panel .gcolumns ul {
@@ -119,6 +122,7 @@
 
 #rooms .panel .gcolumns li {
   border: 1px solid #dddddd;
+  /*border:1px solid red;*/
   font-size: 85%;
   height: 1.33em;
   line-height: 15px;

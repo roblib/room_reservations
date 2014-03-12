@@ -54,7 +54,7 @@ function theme_room_reservations($variables) {
   $building_hours_display = $variables['5'];
   $rooms = $variables['6'];
   $selected_category = $variables['7'];
-  // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
+  // TODO Number of parameters in this theme function does not match number of parameters found in hook_theme.
   // User information.
   $full_access = FALSE;
   $user_login_name = NULL;
@@ -255,13 +255,19 @@ function theme_room_reservations($variables) {
       else {
         $show = ($category['category'] == $selected_category) ? 'show' : 'hide';
       }
+
+
+
+
+
+
       // Date and building hours.
-      $output .= "<div id='" . t($category['category']) . "' class='panel " .
-        $show . "'><div class='gcolumns'>
+      $output .= "<div id='" . t($category['category']) . "' class='panel " . $show . "'><div class='gcolumns'>
         <div class='grid-column hours-column'><ul><li class='room-info'>" .
         t('Room') . '</li>';
       $output .= "<li class='room-info room-info-heading'>" . t('Capacity') .
         '</li>';
+
       // Available hours column.
       foreach ($hours as $time_slot) {
         $time_display = ($time_slot['class'] == 'odd') ?
@@ -270,10 +276,16 @@ function theme_room_reservations($variables) {
           $time_slot['time'] . "' " .
           '>' . $time_display . '</li>';
       }
-      $output .= "<li class='room-info room-info-footer'>" . t('Room') .
-        '</li>';
+
+      $output .= "<li class='room-info room-info-footer'>" . t('Room') .'</li>';
       $output .= "<li class='room-info'>" . t('Capacity') . '</li>';
       $output .= '</ul></div>';
+
+
+
+
+
+
       // Count the number of rooms in the selected category.
       $rooms_per_category = 0;
       foreach ($rooms as $room) {
@@ -281,8 +293,50 @@ function theme_room_reservations($variables) {
           $rooms_per_category++;
         }
       }
-      // Column for each room in the category.
+
+      //echo "rooms: " . $rooms_per_category;
+
+
+
+
+   // }
+  //}    // Column for each room in the category.
+      $room_count = 0;
       foreach ($rooms as $room) {
+        $room_count++;
+
+        if($room_count % 8 == 0) {
+
+          $output .= '</div></div>';
+
+          // Date and building hours.
+          $output .= "<div id='" . t($category['category']) . "' class='panel " . $show . "'><div class='gcolumns'>
+        <div class='grid-column hours-column'><ul><li class='room-info'>" .
+            t('Room') . '</li>';
+          $output .= "<li class='room-info room-info-heading'>" . t('Capacity') .
+            '</li>';
+
+
+          // Available hours column.
+          foreach ($hours as $time_slot) {
+            $time_display = ($time_slot['class'] == 'odd') ?
+              t($time_slot['display']) : "";
+            $output .= "<li class='" . $time_slot['class'] . " timeslot' time='" .
+              $time_slot['time'] . "' " .
+              '>' . $time_display . '</li>';
+          }
+
+          $output .= "<li class='room-info room-info-footer'>" . t('Room') .'</li>';
+          $output .= "<li class='room-info'>" . t('Capacity') . '</li>';
+          $output .= '</ul></div>';
+        }
+
+
+
+
+
+
+
         $room_name = $room['name'];
         if ($room['category'] == $category['category']) {
           // Room name, capacity.
@@ -358,12 +412,28 @@ function theme_room_reservations($variables) {
           $output .= '</ul></div>';
         }
       }
-      $output .=
-        '</div></div>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      $output .= '</div></div>';
     }
-    $output .= '</div>';
-    $output .= '</div>';
-    $output .= '</div>';
-  }
+
+    $output .= '</div></div></div>';
+}
+
+
+
   return $output;
 }
