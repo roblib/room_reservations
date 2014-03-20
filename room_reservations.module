@@ -695,8 +695,7 @@ function room_reservations_form($node) {
       '#default_value' => isset($node->display_name)?$node->display_name:'',
       '#required' => FALSE,
       '#rows' => 5,
-      '#description' => t('Information about the room that will help your
-        users select a suitable room.'),
+      '#description' => t('Information about the room that will help your users select a suitable room.'),
       '#weight' => 5,
     );
     $form['category'] = array(
@@ -705,8 +704,7 @@ function room_reservations_form($node) {
       '#default_value' => isset($node->category) ? $node->category : '',
       '#options' => $options,
       '#required' => TRUE,
-      '#description' => t('The category in which the room appears on the
-        reservation calendar.'),
+      '#description' => t('The category in which the room appears on the reservation calendar.'),
       '#weight' => 10,
     );
     $form['capacity'] = array(

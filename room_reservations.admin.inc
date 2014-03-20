@@ -1716,33 +1716,24 @@ function room_reservations_admin_settings_email_submit($form_id, &$form_state) {
  * Form constructor for the Messages / SMS Messages configuration page.
  */
 function room_reservations_admin_settings_text($form, &$form_state) {
-  $default_enable_text
-    = _room_reservations_get_variable('enable_text');
-  $default_from_address
-    = _room_reservations_get_variable('from_address_sms');
-  $default_confirmation_header_text
-    = _room_reservations_get_variable('confirmation_header_text_sms');
-  $default_confirmation_owner_text
-    = _room_reservations_get_variable('confirmation_owner_text_sms');
-  $default_reminder_header_text
-    = _room_reservations_get_variable('reminder_header_text_sms');
-  $default_reminder_owner_text
-    = _room_reservations_get_variable('reminder_owner_text_sms');
+  $default_enable_text = _room_reservations_get_variable('enable_text');
+  $default_from_address = _room_reservations_get_variable('from_address_sms');
+  $default_confirmation_header_text  = _room_reservations_get_variable('confirmation_header_text_sms');
+  $default_confirmation_owner_text  = _room_reservations_get_variable('confirmation_owner_text_sms');
+  $default_reminder_header_text = _room_reservations_get_variable('reminder_header_text_sms');
+  $default_reminder_owner_text = _room_reservations_get_variable('reminder_owner_text_sms');
   $tokens = array(
-    '%reservation_name' => t('The name given to the reservation to identify it
-      on the reservation calendar.'),
+    '%reservation_name' => t('The name given to the reservation to identify it on the reservation calendar.'),
     '%room' => t('The room that has been reserved.'),
     '%month' => t('The full name of the month of the reservation date.'),
     '%month_number' => t('The month number of the reservation date.'),
     '%day' => t('The numeric day of the month of the reservation date.'),
-    '%day_of_the_week' => t('The full name of the day of the week of the
-      reservation date.'),
+    '%day_of_the_week' => t('The full name of the day of the week of the reservation date.'),
     '%time' => t('The time of the reservation.'),
     '%minutes' => t('The length of the reservation in minutes.'),
   );
   $token_display = '<p>' .
-    t('The following tokens will be replaced with dynamic values in any of the
-    fields below.') . '</p><ul>';
+    t('The following tokens will be replaced with dynamic values in any of the fields below.') . '</p><ul>';
   foreach ($tokens as $key => $value) {
     $token_display .= '<li>' . $key . ' - ' . $value . '</li>';
   }
@@ -1824,10 +1815,9 @@ function room_reservations_admin_settings_text($form, &$form_state) {
 }
 
 /**
- * Form validatiion for the Messages / SMS Messages configuration page.
+ * Form validation for the Messages / SMS Messages configuration page.
  */
-function room_reservations_admin_settings_text_validate($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_text_validate($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Save configuration')) {
     $from_address = $form_state['values']['from_address'];
     if (valid_email_address($from_address)) {
@@ -1873,23 +1863,19 @@ function room_reservations_admin_settings_text_submit($form_id, &$form_state) {
   if (!$result) {
     $errors = TRUE;
   }
-  $result = _room_reservations_set_variable('confirmation_header_text_sms',
-    $confirmation_header);
+  $result = _room_reservations_set_variable('confirmation_header_text_sms', $confirmation_header);
   if (!$result) {
     $errors = TRUE;
   }
-  $result = _room_reservations_set_variable('confirmation_owner_text_sms',
-    $confirmation_owner);
+  $result = _room_reservations_set_variable('confirmation_owner_text_sms', $confirmation_owner);
   if (!$result) {
     $errors = TRUE;
   }
-  $result = _room_reservations_set_variable('reminder_header_text_sms',
-    $reminder_header);
+  $result = _room_reservations_set_variable('reminder_header_text_sms', $reminder_header);
   if (!$result) {
     $errors = TRUE;
   }
-  $result = _room_reservations_set_variable('reminder_owner_text_sms',
-    $reminder_owner);
+  $result = _room_reservations_set_variable('reminder_owner_text_sms', $reminder_owner);
   if (!$result) {
     $errors = TRUE;
   }

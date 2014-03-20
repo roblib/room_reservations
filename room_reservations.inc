@@ -220,7 +220,9 @@ class Reservation {
           $this->time = $data->time;
           $this->length = $data->length;
           $this->room = $data->room;
-          $this->name = check_plain($data->name);
+          //$this->name = check_plain($data->name);
+          $this->name = $data->name;
+          //$this->name = htmlspecialchars_decode(check_plain($data->name));
           $this->groupSize = $data->group_size;
           $this->userName = $data->user_name;
           $this->emailAddresses = check_plain($data->email_addresses);
@@ -985,15 +987,17 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
     length > :length7)
     )
   ";
-  $result = db_query($sql, array (':delete'=>'N', ':room'=>$room, 
-                                  ':date0' => $search_items[0]['date'], ':time0'=> $search_items[0]['start_time'], ':length0'=> $search_items[0]['length'], 
-                                  ':date1' => $search_items[1]['date'], ':time1'=> $search_items[1]['start_time'], ':length1'=> $search_items[1]['length'],
-                                  ':date2' => $search_items[2]['date'], ':time2'=> $search_items[2]['start_time'], ':length2'=> $search_items[2]['length'],
-                                  ':date3' => $search_items[3]['date'], ':time3'=> $search_items[3]['start_time'], ':length3'=> $search_items[3]['length'],
-                                  ':date4' => $search_items[4]['date'], ':time4'=> $search_items[4]['start_time'], ':length4'=> $search_items[4]['length'],
-                                  ':date5' => $search_items[5]['date'], ':time5'=> $search_items[5]['start_time'], ':length5'=> $search_items[5]['length'],
-                                  ':date6' => $search_items[6]['date'], ':time6'=> $search_items[6]['start_time'], ':length6'=> $search_items[6]['length'],
-                                  ':date7' => $search_items[7]['date'], ':time7'=> $search_items[7]['start_time'], ':length7'=> $search_items[7]['length']));
+  $result = db_query(
+    $sql, array (
+      ':delete'=>'N', ':room'=>$room,
+      ':date0' => $search_items[0]['date'], ':time0'=> $search_items[0]['start_time'], ':length0'=> $search_items[0]['length'],
+      ':date1' => $search_items[1]['date'], ':time1'=> $search_items[1]['start_time'], ':length1'=> $search_items[1]['length'],
+      ':date2' => $search_items[2]['date'], ':time2'=> $search_items[2]['start_time'], ':length2'=> $search_items[2]['length'],
+      ':date3' => $search_items[3]['date'], ':time3'=> $search_items[3]['start_time'], ':length3'=> $search_items[3]['length'],
+      ':date4' => $search_items[4]['date'], ':time4'=> $search_items[4]['start_time'], ':length4'=> $search_items[4]['length'],
+      ':date5' => $search_items[5]['date'], ':time5'=> $search_items[5]['start_time'], ':length5'=> $search_items[5]['length'],
+      ':date6' => $search_items[6]['date'], ':time6'=> $search_items[6]['start_time'], ':length6'=> $search_items[6]['length'],
+      ':date7' => $search_items[7]['date'], ':time7'=> $search_items[7]['start_time'], ':length7'=> $search_items[7]['length']));
   $conflicts_found = FALSE;
   if ($result) {
     foreach($result as $data) {
@@ -1065,8 +1069,7 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
       break;
     }
   }
-  // If it's possible for the reservation to span 2 days, get the time slots
-  // for the subsequent day.
+  // If it's possible for the reservation to span 2 days, get the time slots for the subsequent day.
   if ($x < $max_slots) {
     $include = TRUE;
     $day = date('Y-m-d', strtotime("$yyyymmdd +1 days"));
@@ -1085,7 +1088,7 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
     }
   }
   // Determine if the reservation at each possible length would conflict with
-  // another reservtion.  If so, set is_valid for that length to FALSE.
+  // another reservation.  If so, set is_valid for that length to FALSE.
   // The first time slot has already been validated and does not need to be
   // checked again.
   $mobile_db = _room_reservations_detect_mobile_db();
@@ -1677,4 +1680,32 @@ function _room_reservations_detect_mobile_db() {
   else {
     return FALSE;
   }
+}
+
+function _detect_mobile($type = NULL) {
+    $user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT'] );
+    if ( $type == 'bot' ) {
+      // matches popular bots
+      if ( preg_match ( "/googlebot|adsbot|yahooseeker|yahoobot|msnbot|watchmouse|pingdom\.com|feedfetcher-google/", $user_agent ) ) {
+        return true;
+        // watchmouse|pingdom\.com are "uptime services"
+      }
+    } else if ( $type == 'browser' ) {
+      // matches core browser types
+      if ( preg_match ( "/mozilla\/|opera\//", $user_agent ) ) {
+        return true;
+      }
+    } else if ( $type == 'mobile' ) {
+      // matches popular mobile devices that have small screens and/or touch inputs
+      // mobile devices have regional trends; some of these will have varying popularity in Europe, Asia, and America
+      // detailed demographics are unknown, and South America, the Pacific Islands, and Africa trends might not be represented, here
+      if ( preg_match ( "/phone|iphone|itouch|ipod|symbian|android|htc_|htc-|palmos|blackberry|opera mini|iemobile|windows ce|nokia|fennec|hiptop|kindle|mot |mot-|webos\/|samsung|sonyericsson|^sie-|nintendo/", $user_agent ) ) {
+        // these are the most common
+        return true;
+      } else if ( preg_match ( "/mobile|pda;|avantgo|eudoraweb|mobi|minimo|netfront|brew|teleca|lg;|lge |wap;| wap /", $user_agent ) ) {
+        // these are less common, and might not be worth checking
+        return true;
+      }
+    }
+  return false;
 }
