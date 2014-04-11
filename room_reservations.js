@@ -14,9 +14,10 @@ Drupal.behaviors.room_reservations = {
         jQuery('.room-tabs a').click(function() {
             jQuery('.panel').hide();
             jQuery('.room-tabs a.active').removeClass('active');
-            jQuery(this).addClass('active').blur();
+          jQuery(this).addClass('active').blur();
             var panel = jQuery(this).attr('href');
             jQuery(panel).fadeIn(250);
+//alert(jQuery(this).attr('href'));
             return false;
         });
 

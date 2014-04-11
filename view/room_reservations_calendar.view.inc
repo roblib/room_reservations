@@ -233,6 +233,7 @@ function theme_room_reservations($variables) {
     // Tabs.
     $output .= "<ul class='room-tabs'>";
     $i = 0;
+//dpr($categories);
     foreach ($categories as $category) {
       // Set the active tab - first tab if none has been selected yet.
       if (!$selected_category) {
@@ -257,6 +258,7 @@ function theme_room_reservations($variables) {
     // slots and rooms.
     $i = 0;
     foreach ($categories as $category) {
+//echo $category['category'] . "<br/>";
       // Show the first tab and hide all others.
       if (!$selected_category) {
         $show = ($i == 0) ? 'show' : 'hide';
@@ -267,14 +269,10 @@ function theme_room_reservations($variables) {
       }
 
 
-
-
-
-
-      $hour_column = room_reservations_build_hours_column($category, $show, $hours);
+      $hour_column = room_reservations_build_hours_column($category['category'], $show, $hours);
       $output .= $hour_column;
 
-
+//dpr($rooms);
       // Count the number of rooms in the selected category.
       $rooms_per_category = 0;
       foreach ($rooms as $room) {
@@ -285,21 +283,26 @@ function theme_room_reservations($variables) {
 
       //echo "rooms: " . $rooms_per_category;
 
-
+//dpr($rooms);
 
 
    // }
   //}    // Column for each room in the category.
       $room_count = 0;
       foreach ($rooms as $room) {
-        $room_count++;
+//echo "room: " . $room . "<br/>";
+        if ($room['category'] == $category['category']) {
+          $room_count++;
 
-        // Wrap and repeat hours column after every 7th room per category.
-        if($room_count == 9 OR $room_count == 16 OR $room_count == 23 OR $room_count == 30 OR $room_count == 37
-             OR $room_count == 44 OR $room_count == 51) {
-          //echo $room_count;
-          $output .= "</div></div>";
-          $output .= $hour_column;
+
+          // Wrap and repeat hours column after every 7th room per category.
+          if($room_count == 8 OR $room_count == 15 OR $room_count == 22 OR $room_count == 29
+              OR $room_count == 36 OR $room_count == 43 OR $room_count == 50) {
+  //echo "room count: " . $room_count . " for: " . $category['category'] . "<br/>";
+            $output .= "</div>";
+            //$output .= $hour_column;
+            $output .= room_reservations_build_hours_column2($category['category'], $show, $hours);
+          }
         }
 
 
@@ -361,7 +364,6 @@ function theme_room_reservations($variables) {
               // current user.
 
               $user_name = $reservations[$room_name][$time]['user_name'];
-//echo htmlspecialchars_decode(check_plain($reservations[$room_name][$time]['name']));
 
               $viewable_class = (($full_access) ||
                 ($user_login_name == $user_name)) ? 'viewable' : '';
@@ -425,7 +427,25 @@ function theme_room_reservations($variables) {
  */
 function room_reservations_build_hours_column($category, $show, $hours) {
 
-  $output = "<div id='" . t($category['category']) . "' class='panel " . $show . "'><div class='gcolumns'>
+  $output = "<div id='" . $category . "' class='panel " . $show . "'><div class='gcolumns'>
+              <div class='grid-column hours-column'><ul><li class='room-info'>" . t('Room') . "</li>
+                <li class='room-info room-info-heading'>" . t('Capacity') . '</li>';
+
+  foreach ($hours as $time_slot) {
+    $time_display = ($time_slot['class'] == 'odd') ? t($time_slot['display']) : "";
+    $output .= "<li class='" . $time_slot['class'] . " timeslot' time='" . $time_slot['time']
+      . "' " . '>'. $time_display . '</li>';
+  }
+
+  $output .= "<li class='room-info room-info-footer'>" . t('Room') . "</li>
+              <li class='room-info'>" . t('Capacity') . "</li></ul></div>";
+
+  return $output;
+}
+
+function room_reservations_build_hours_column2($category, $show, $hours) {
+
+  $output = "<div class='gcolumns'>
               <div class='grid-column hours-column'><ul><li class='room-info'>" . t('Room') . "</li>
                 <li class='room-info room-info-heading'>" . t('Capacity') . '</li>';
 

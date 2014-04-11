@@ -183,6 +183,12 @@
   display: none;
 }
 
+/*
+#rooms .show {
+  display: inline-block;
+}
+*/
+
 .page-room-reservations .form-item label {
   display: inline;
 }
