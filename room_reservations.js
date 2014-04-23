@@ -1,3 +1,12 @@
+/**
+ * @file
+ * JQuery functionality for the Room Reservations module.
+ */
+
+/**
+ * JQuery function.
+ *
+ */
 Drupal.behaviors.room_reservations = {
     attach: function(context, settings) {
         jQuery('#rooms ul li.reservable, #rooms ul li.open').mouseover(function() {
@@ -17,7 +26,6 @@ Drupal.behaviors.room_reservations = {
           jQuery(this).addClass('active').blur();
             var panel = jQuery(this).attr('href');
             jQuery(panel).fadeIn(250);
-//alert(jQuery(this).attr('href'));
             return false;
         });
 

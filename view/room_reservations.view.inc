@@ -23,15 +23,14 @@
  * @param string $selected_category
  *   The current category the user has selected, if any.
  */
-function room_reservations_select_room_date_form($form,&$form_state, $building_hours,
+function room_reservations_select_room_date_form($form, &$form_state, $building_hours,
   $dates, $rooms, $categories, $selected_category) {
   // Select box options.
   $date_options = array();
   foreach ($dates as $day) {
     $building_hours_day = $building_hours[$day['yyyymmdd']];
     if ($building_hours_day['open']) {
-      $date_options[$day['month-number'] . "/" . $day['day']]
-        = t($day['display']);
+      $date_options[$day['month-number'] . "/" . $day['day']] = $day['display'];
     }
   }
   $first = TRUE;
@@ -102,24 +101,19 @@ function room_reservations_select_room_date_form_submit($form_id,
 /**
  * Theme the list of the current user's reservations.
  *
- * @param object $user
- *   Drupal user object.
- * @param string $base_url
- *   The base URL of the Drupal installation.
- * @param array $user_reservations
- *   Information about the user's reservations.
- * @param int $count
- *   The number of reservations to be displayed.
+ * @param array $variables
+ *   Drupal array.
  *
  * @return string
  *   A list of the current user's reservations in HTML format.
  */
 function theme_room_reservations_list($variables) {
   $user = $variables['0'];
-  $base_url =$variables['1'];
+  $base_url = $variables['1'];
   $user_reservations = $variables['2'];
   $count = $variables['3'];
-  // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
+  // TODO Number of parameters in this theme function does not
+  // TODO match number of parameters found in hook_theme.
   $output = '';
   if ($user->uid) {
     // User is logged in.
@@ -130,8 +124,8 @@ function theme_room_reservations_list($variables) {
         it.') . '<br /><ul>';
       foreach ($user_reservations as $user_reservation) {
         $output .= "<li><a href='" . $base_url . '/room_reservations/view/' .
-          $user_reservation['id'] . "'>" . t($user_reservation['date']) .
-          " - " . t($user_reservation['time'])  . '</a></li>';
+          $user_reservation['id'] . "'>" . $user_reservation['date'] .
+          " - " . $user_reservation['time'] . '</a></li>';
       }
       $output .= '</ul>';
     }
@@ -153,10 +147,8 @@ function theme_room_reservations_list($variables) {
 /**
  * Theme the room description page /room_reservations/rooms.
  *
- * @param array $categories
- *   An array of all the room categories.
- * @param array $rooms
- *   An array of all the rooms.
+ * @param array $variables
+ *   Drupal array.
  *
  * @return string
  *   The html for displaying the page.
@@ -164,15 +156,16 @@ function theme_room_reservations_list($variables) {
 function theme_room_reservations_descriptions($variables) {
   $categories = $variables['0'];
   $rooms = $variables['1'];
-  // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
+  // TODO Number of parameters in this theme function does not
+  // TODO match number of parameters found in hook_theme.
   $output = '<br />';
   foreach ($categories as $category) {
-    $output .= '<h2>' . t($category['display']) . '</h2><br />';
+    $output .= '<h2>' . $category['display'] . '</h2><br />';
     foreach ($rooms as $room) {
       if ($room['category'] == $category['category']) {
         $output .= '<a name="' . $room['name'] . '"><h3>' . $room['name'] .
           '</h3></a><br />' . t('Capacity') . ':&nbsp;&nbsp;' .
-          $room['capacity'] . '<br /><br />' . t($room['description']) .
+          $room['capacity'] . '<br /><br />' . $room['description'] .
           '<br /><br />';
       }
     }

@@ -435,8 +435,7 @@ function room_reservations_admin_settings_mobile($form, &$form_state) {
 /**
  * Form submission for the Settings / Mobile config page.
  */
-function room_reservations_admin_settings_mobile_submit(
-  $form_id, &$form_state) {
+function room_reservations_admin_settings_mobile_submit($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Save configuration')) {
     $mobile_url = trim($form_state['values']['mobile_url']);
     $main_database = trim($form_state['values']['main_database']);
@@ -477,7 +476,7 @@ function room_reservations_admin_settings_default_hours($form, &$form_state) {
   $options['0000'] = t('Midnight - start of day');
   foreach ($hours as $hour) {
     $time = $hour['time'];
-    $display = t($hour['display']);
+    $display = $hour['display'];
     if ($time != '0000') {
       $options[$time] = $display;
     }
@@ -670,8 +669,7 @@ function room_reservations_admin_settings_default_hours_validate($form_id,
 /**
  * Form submission for the Hours / Default Hours configuration page.
  */
-function room_reservations_admin_settings_default_hours_submit($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_default_hours_submit($form_id, &$form_state) {
   $default_hours = array();
   if ($form_state['clicked_button']['#value'] == t('Save configuration')) {
     for ($day = 0; $day < 7; $day++) {
@@ -714,7 +712,7 @@ function room_reservations_admin_settings_default_hours_submit($form_id,
   ";
   $result = db_query($sql, array(':monthly_hours' => 'monthly_hours_%'));
   if ($result) {
-    foreach($result as $data){
+    foreach ($result as $data) {
       $name = $data->name;
       $month = intval(drupal_substr($name, 19));
       $year = drupal_substr($name, 14, 4);
@@ -758,16 +756,18 @@ function room_reservations_admin_settings_default_hours_submit($form_id,
   }
 }
 
-function room_reservations_admin_settings_daily_form($selected_month=NULL)
-{
-  $form = drupal_get_form('room_reservations_admin_settings_daily_hours',$selected_month);
+/**
+ * Form constructor configuration page.
+ */
+function room_reservations_admin_settings_daily_form($selected_month = NULL) {
+  $form = drupal_get_form('room_reservations_admin_settings_daily_hours', $selected_month);
   return $form;
 }
+
 /**
  * Form constructor for the Hours / Daily Hours configuration page.
  */
-function room_reservations_admin_settings_daily_hours($form, &$form_state,
-  $selected_month = NULL) {
+function room_reservations_admin_settings_daily_hours($form, &$form_state, $selected_month = NULL) {
   // Current three months.
   $cur_months = _room_reservations_current_months();
   // If no month has been selected, return a form to pick a month.
@@ -776,8 +776,8 @@ function room_reservations_admin_settings_daily_hours($form, &$form_state,
     for ($x = 1; $x < 4; $x++) {
       $cur_month = $cur_months[$x];
       $yyyy_mm = $cur_month['YYYY_MM'];
-      $display = t($cur_month['display']);
-      $month_options[$yyyy_mm] = t($cur_month['display']);
+      $display = $cur_month['display'];
+      $month_options[$yyyy_mm] = $cur_month['display'];
       if ($x == 1) {
         $default_month = $yyyy_mm;
       }
@@ -805,7 +805,7 @@ function room_reservations_admin_settings_daily_hours($form, &$form_state,
   $options['0000'] = t('Midnight - start of day');
   foreach ($hours as $hour) {
     $time = $hour['time'];
-    $display = t($hour['display']);
+    $display = $hour['display'];
     if ($time != '0000') {
       $options[$time] = $display;
     }
@@ -818,7 +818,7 @@ function room_reservations_admin_settings_daily_hours($form, &$form_state,
   for ($x = 1; $x < 4; $x++) {
     $cur_month = $cur_months[$x];
     $yyyy_mm = $cur_month['YYYY_MM'];
-    $display = t($cur_month['display']);
+    $display = $cur_month['display'];
     if ($x == 1) {
       $default_month = $yyyy_mm;
       $default_display_month = $display;
@@ -924,8 +924,7 @@ function room_reservations_admin_settings_daily_hours($form, &$form_state,
 /**
  * Form validation for the Hours / Daily Hours configuration page.
  */
-function room_reservations_admin_settings_daily_hours_validate($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_daily_hours_validate($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Save configuration')) {
     $month_value = $form_state['values']['month'];
     $month = intval(drupal_substr($month_value, 5));
@@ -1034,8 +1033,7 @@ function room_reservations_admin_settings_daily_hours_validate($form_id,
 /**
  * Form submission for the Hours / Daily Hours configuration page.
  */
-function room_reservations_admin_settings_daily_hours_submit($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_daily_hours_submit($form_id, &$form_state) {
   // Select month.
   if ($form_state['clicked_button']['#value'] == t('Select a month')) {
     $form_state['redirect']
@@ -1254,13 +1252,12 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
   if ($result) {
     $options = array();
     $form['carriers']['list_0'] = array(
-       '#type' => 'item',
-        '#markup' => '<table><tr><th>' . t('Wireless carrier') . '</th><th>' .
-      t('Domain name') . '</th></tr>',
+      '#type' => 'item',
+      '#markup' => '<table><tr><th>' . t('Wireless carrier') . '</th><th>' . t('Domain name') . '</th></tr>',
       '#weight' => -99,
     );
     $x = 0;
-    foreach($result as $data) {
+    foreach ($result as $data) {
       $x++;
       $id = $data->id;
       $values = explode('~', $data->value);
@@ -1274,8 +1271,8 @@ function room_reservations_admin_settings_sms($form, &$form_state) {
       $x++;
     }
     $form['carriers']['list_' . $x] = array(
-       '#type' => 'item',
-        '#markup' => '</table>',
+      '#type' => 'item',
+      '#markup' => '</table>',
       '#weight' => -99 + $x,
     );
   }
@@ -1307,8 +1304,8 @@ function room_reservations_admin_settings_sms_submit($form_id, &$form_state) {
     $error = ROOM_RESERVATIONS_RESET_ERROR_MSG;
   }
   $result = _room_reservations_set_variable('sms_option', $sms_option);
-  $errors=FALSE; 
- if (!$result) {
+  $errors = FALSE;
+  if (!$result) {
     $errors = TRUE;
   }
   if ($errors) {
@@ -1328,8 +1325,7 @@ function room_reservations_admin_settings_sms_add($form, &$form_state) {
     '#type' => 'textfield',
     '#maxlength' => 50,
     '#size' => 50,
-    '#description' => t('The name of the wireless carrier, such as !att or
-      !verizon.', array(
+    '#description' => t('The name of the wireless carrier, such as !att or !verizon.', array(
       '!att' => 'AT&T',
       '!verizon' => 'Verizon',
     )),
@@ -1340,8 +1336,7 @@ function room_reservations_admin_settings_sms_add($form, &$form_state) {
     '#type' => 'textfield',
     '#maxlength' => 50,
     '#size' => 50,
-    '#description' => t('The domain name of the wireless carrier, such as
-      !att or !verizon.', array(
+    '#description' => t('The domain name of the wireless carrier, such as !att or !verizon.', array(
       '!att' => '@txt.att.net',
       '!verizon' => '@vtext.com',
     )),
@@ -1386,9 +1381,9 @@ function room_reservations_admin_settings_sms_add_validate($form_id,
         FROM {room_reservations_variables}
         WHERE name = :name
         ";
-      $result = db_query($sql, array(':name'=>'carrier'));
+      $result = db_query($sql, array(':name' => 'carrier'));
       if ($result) {
-        foreach($result as $data) {
+        foreach ($result as $data) {
           $values = explode('~', $data->value);
           if ($values[0] == $carrier) {
             $field = 'add_carrier][carrier';
@@ -1406,8 +1401,7 @@ function room_reservations_admin_settings_sms_add_validate($form_id,
 /**
  * Form submission for the SMS / Add Carrier configuration page.
  */
-function room_reservations_admin_settings_sms_add_submit($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_sms_add_submit($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Add')) {
     $carrier = $form_state['values']['carrier'];
     $domain = $form_state['values']['domain'];
@@ -1416,7 +1410,7 @@ function room_reservations_admin_settings_sms_add_submit($form_id,
       (name, value)
       VALUES (:name, :value)
       ";
-    $result = db_query($sql, array(':name'=>'carrier',':value'=>$carrier . '~' . $domain));
+    $result = db_query($sql, array(':name' => 'carrier', ':value' => $carrier . '~' . $domain));
     if (!$result) {
       drupal_set_message(t('The wireless carrier could not be added.'),
         'error');
@@ -1437,7 +1431,7 @@ function room_reservations_admin_settings_sms_delete($form, &$form_state) {
     WHERE name = :name
     ORDER BY value
   ";
-  $result = db_query($sql, array(':name'=>'carrier'));
+  $result = db_query($sql, array(':name' => 'carrier'));
   if ($result) {
     $options = array();
     $options[strval(0)] = t('Select a wireless carrier');
@@ -1469,8 +1463,7 @@ function room_reservations_admin_settings_sms_delete($form, &$form_state) {
 /**
  * Form validation for the SMS / Delete Network configuration page.
  */
-function room_reservations_admin_settings_sms_delete_validate($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_sms_delete_validate($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Delete')) {
     $carrier = $form_state['values']['carrier'];
     if (!$carrier) {
@@ -1484,15 +1477,14 @@ function room_reservations_admin_settings_sms_delete_validate($form_id,
 /**
  * Form submission for the SMS / Delete Network configuration page.
  */
-function room_reservations_admin_settings_sms_delete_submit($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_sms_delete_submit($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Delete')) {
     $carrier = $form_state['values']['carrier'];
     $sql = "
       DELETE FROM {room_reservations_variables}
       WHERE ID = :id
       ";
-    $result = db_query($sql, array('id'=>$carrier));
+    $result = db_query($sql, array('id' => $carrier));
     if (!$result) {
       drupal_set_message(t('The wireless carrier could not be deleted.'),
         'error');
@@ -1629,8 +1621,7 @@ function room_reservations_admin_settings_email($form, &$form_state) {
 /**
  * Form validation for the Messages / Email Messages configuration page.
  */
-function room_reservations_admin_settings_email_validate($form_id,
-  &$form_state) {
+function room_reservations_admin_settings_email_validate($form_id, &$form_state) {
   if ($form_state['clicked_button']['#value'] == t('Save configuration')) {
     $from_address = $form_state['values']['from_address'];
     if (valid_email_address($from_address)) {
@@ -1764,7 +1755,7 @@ function room_reservations_admin_settings_text($form, &$form_state) {
     '#weight' => -100,
   );
   $form['tokens']['values'] = array(
-    '#type'=>'item',
+    '#type' => 'item',
     '#markup' => $token_display,
   );
   $form['confirmation_header'] = array(

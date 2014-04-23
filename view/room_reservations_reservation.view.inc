@@ -8,20 +8,16 @@
  * Form constructor for the reservation form.
  *
  * @param object $node
+ *   Node object.
  * @param array $form_state
+ *   Drupal array $form_state
  * @param string $operation
- *   The operation being performed using the form:  add, update, view.
+ *   The operation being performed using the form: add, update, view.
  * @param object $res
  *   A reservation object that contains all the details related to the
  *   reservation being made, updated, or viewed.
  */
 function room_reservations_res_form($node, &$form_state, $operation, $res) {
-
-  //TESTING
-  //dpr($res);
-  //$res->name = htmlspecialchars_decode($res->name);
-  //echo "name: " . $res->name;
-
   $reserve_form_instructions_text = check_markup(_room_reservations_get_variable('reserve_form_instructions'));
   $room_reservations_group_size = variable_get('room_reservations_group_size', 0);
   $sms_option = _room_reservations_get_variable('sms_option');
@@ -52,7 +48,7 @@ function room_reservations_res_form($node, &$form_state, $operation, $res) {
   if ($operation === 'add') {
     $form['instructions'] = array(
       '#title' => t('Patron'),
-      '#value' => t($reserve_form_instructions_text),
+      '#value' => $reserve_form_instructions_text,
       '#weight' => 0,
     );
   }
@@ -78,13 +74,13 @@ function room_reservations_res_form($node, &$form_state, $operation, $res) {
   $form['details']['display_date'] = array(
     '#title' => t('Date'),
     '#type' => 'item',
-    '#markup' => t($res->displayDate),
+    '#markup' => $res->displayDate,
     '#weight' => 25,
   );
   $form['details']['time'] = array(
     '#title' => t('Time'),
     '#type' => 'item',
-    '#markup' => t($res->displayTime),
+    '#markup' => $res->displayTime,
     '#weight' => 30,
   );
   if ($operation == 'add') {
@@ -115,7 +111,6 @@ function room_reservations_res_form($node, &$form_state, $operation, $res) {
     );
   }
 
-//echo "name: " . $res->name;
   if (($operation == 'add') || ($operation == 'update')) {
     $form['details']['group_name'] = array(
       '#title' => t('Group name'),
@@ -222,8 +217,8 @@ function room_reservations_res_form($node, &$form_state, $operation, $res) {
     }
   }
 
-  //$mobile = _room_reservations_detect_mobile();
   $mobile = _detect_mobile('mobile');
+
   if ($mobile) {
     $reminder_columns = 30;
   }
@@ -320,10 +315,10 @@ function room_reservations_res_form($node, &$form_state, $operation, $res) {
 /**
  * Form validation for the reservation form.
  *
- * @param string $form_id
- *   Drupal form id.
+ * @param array $form
+ *   Drupal array $form.
  * @param array $form_state
- *   Drupal form state object.
+ *   Drupal array $form_state.
  */
 function room_reservations_res_form_validate($form, &$form_state) {
   // When a user is filling out the form to reserve a room, it is possible that
@@ -344,7 +339,7 @@ function room_reservations_res_form_validate($form, &$form_state) {
         drupal_set_message(check_plain($message), $type);
       }
       elseif (room_reservations_rewrite_error($message) !== TRUE) {
-        drupal_set_message(room_reservations_rewrite_error($message), $type);
+        drupal_set_message(check_plain(room_reservations_rewrite_error($message)), $type);
       }
     }
   }
@@ -410,26 +405,21 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
   $room = $form_state['values']['room_name'];
   $group_name = $form_state['values']['group_name'];
 
-  //TESTING
-  //echo "group name: " . $group_name;
-
-
-
-
   if (isset($form_state['values']['group_size'])) {
     $group_size = $form_state['values']['group_size'];
   }
   else {
     $group_size = 0;
   }
+
   $user_name = $form_state['values']['user_name_hold'];
   $category = $form_state['values']['category'];
   $yyyymmdd = $form_state['values']['yyyymmdd'];
   $email_addresses = trim($form_state['values']['email_addresses']);
 
   $sms_option = _room_reservations_get_variable('sms_option');
-  
-  $textmsg_checkbox = null;
+
+  $textmsg_checkbox = NULL;
   if ($sms_option) {
     $textmsg_checkbox = $form_state['values']['textmsg'];
     $carrier = $form_state['values']['carrier'];
@@ -464,17 +454,31 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       $mainsite = trim(_room_reservations_get_variable('main_database'));
       db_set_active($mainsite);
     }
-    if(!$group_size)
-    {
-      $group_size=0;
+    if (!$group_size) {
+      $group_size = 0;
     }
-    
+
     $sql = "
       INSERT INTO {room_reservations}
       (date, time, length, room, name, group_size, user_name, email_addresses,create_date,textmsg, carrier, phone,update_date,reminder_date)
       VALUES (:date, :time, :length, :room, :group_name, :group_size, :user_name, :email_address, :request_date, :text_msg, :carrier,
       :phone,:update_date,:reminder_date)";
-    $result = db_query($sql, array(':date' => $yyyymmdd, ':time'=>$time, ':length'=>$length, ':room'=>$room, ':group_name'=>$group_name, ':group_size'=>$group_size, ':user_name'=>$user_name, ':email_address'=>$email_addresses, ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME), ':text_msg'=>$textmsg, ':carrier'=>$carrier, ':phone'=>$phone,':update_date'=>'1900-01-01 00:00:00',':reminder_date'=>'1900-01-01 00:00:00'));
+    $result = db_query($sql, array(
+      ':date' => $yyyymmdd,
+      ':time' => $time,
+      ':length' => $length,
+      ':room' => $room,
+      ':group_name' => $group_name,
+      ':group_size' => $group_size,
+      ':user_name' => $user_name,
+      ':email_address' => $email_addresses,
+      ':request_date' => date('Y-m-d H:i:s', REQUEST_TIME),
+      ':text_msg' => $textmsg,
+      ':carrier' => $carrier,
+      ':phone' => $phone,
+      ':update_date' => '1900-01-01 00:00:00',
+      ':reminder_date' => '1900-01-01 00:00:00',
+    ));
     // Send a confirmation email or text message.
     $params = array(
       'room' => $room,
@@ -521,12 +525,14 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       drupal_set_message(t('Your group study room reservation could not be
          made.'), 'error');
     }
-    if ($mobile_db) {
-//      db_set_active('default');
-    }
 
-    $redirect = "room_reservations/" .
-      $month_number . "/" . $day . "/" . $category;
+    /*
+    if ($mobile_db) {
+    db_set_active('default');
+    }
+    */
+
+    $redirect = "room_reservations/" . $month_number . "/" . $day . "/" . $category;
     $form_state['redirect'] = $redirect;
     $form_state['redirect'] = $redirect;
   }
@@ -538,8 +544,8 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       $mainsite = trim(_room_reservations_get_variable('main_database'));
       db_set_active($mainsite);
     }
-    
-    $sql ="
+
+    $sql = "
       UPDATE {room_reservations}
       SET length = :length,
       name = :name,
@@ -550,15 +556,17 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
       carrier = :carrier,
       phone = :phone
       WHERE id = :id";
-    $result = db_query($sql, array(':length'=>$length, 
-                                   ':name'=>$group_name, 
-                                   ':group_size'=>$group_size, 
-                                   ':address'=>$email_addresses, 
-                                   ':update_date'=>date('Y-m-d H:i:s', REQUEST_TIME), 
-                                   ':text_msg'=>$textmsg, 
-                                   ':carrier'=>$carrier, 
-                                   ':phone'=>$phone, 
-                                   ':id'=>$id));
+    $result = db_query($sql, array(
+      ':length' => $length,
+      ':name' => $group_name,
+      ':group_size' => $group_size,
+      ':address' => $email_addresses,
+      ':update_date' => date('Y-m-d H:i:s', REQUEST_TIME),
+      ':text_msg' => $textmsg,
+      ':carrier' => $carrier,
+      ':phone' => $phone,
+      ':id' => $id,
+    ));
     if ($result) {
       drupal_set_message(t('Your group study room reservation has been updated.'));
     }
@@ -581,11 +589,15 @@ function room_reservations_res_form_submit($form_id, &$form_state) {
 /**
  * Form constructor for the delete reservation form.
  *
+ * @param object $node
+ *   Node object.
+ * @param array $form_state
+ *   Drupal array $form_state
  * @param Reservation $res
  *   A reservation object that contains all the details related to the
  *   reservation being deleted.
  */
-function room_reservations_cancel_form($node,&$form_state, $res) {
+function room_reservations_cancel_form($node, &$form_state, $res) {
   $room_capacity = $res->roomCapacity;
   // Form definition.
   $form['room'] = array(
@@ -598,13 +610,13 @@ function room_reservations_cancel_form($node,&$form_state, $res) {
   $form['display_date'] = array(
     '#title' => t('Date'),
     '#type' => 'item',
-    '#markup' => t($res->displayDate),
+    '#markup' => $res->displayDate,
     '#weight' => 20,
   );
   $form['time'] = array(
     '#title' => t('Time'),
     '#type' => 'item',
-    '#markup' => t($res->displayTime),
+    '#markup' => $res->displayTime,
     '#weight' => 30,
   );
   $form['length'] = array(
@@ -633,14 +645,12 @@ function room_reservations_cancel_form($node,&$form_state, $res) {
   );
 
   $mobile = _detect_mobile('mobile');
-  //$mobile = _room_reservations_detect_mobile();
   if ($mobile) {
     $form['category'] = array(
       '#type' => 'value',
       '#value' => $res->room,
     );
   }
-
   else {
     $form['category'] = array(
       '#type' => 'value',
@@ -686,9 +696,11 @@ function room_reservations_cancel_form_submit($form_id, &$form_state) {
       UPDATE {room_reservations}
       SET deleted = :delete,
       update_date = :update_date
-      WHERE id = :id", array(':delete' => 'Y', 
-                             ':update_date' => date('Y-m-d H:i:s', REQUEST_TIME), 
-                             ':id'=>$id));
+      WHERE id = :id", array(
+        ':delete' => 'Y',
+        ':update_date' => date('Y-m-d H:i:s', REQUEST_TIME),
+        ':id' => $id,
+      ));
     if ($result) {
       drupal_set_message(t('Your group study room reservation has been
          cancelled.'));
