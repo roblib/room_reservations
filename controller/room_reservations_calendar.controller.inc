@@ -182,16 +182,18 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
     AND deleted = :delete
     ORDER BY time
   ";
-  $result = db_query($sql, array(':previous_day' => $previous_day, 
-                                 ':search_times0'=> $search_times[0], 
-                                 ':search_times1'=> $search_times[1], 
-                                 ':search_times2'=> $search_times[2], 
-                                 ':search_times3'=> $search_times[3], 
-                                 ':search_times4'=> $search_times[4], 
-                                 ':search_times5'=> $search_times[5], 
-                                 ':search_times6'=> $search_times[6],
-                                 ':delete'=>'N'));
-    foreach ($result as $data) {
+  $result = db_query($sql, array(
+    ':previous_day' => $previous_day,
+    ':search_times0' => $search_times[0],
+    ':search_times1' => $search_times[1],
+    ':search_times2' => $search_times[2],
+    ':search_times3' => $search_times[3],
+    ':search_times4' => $search_times[4],
+    ':search_times5' => $search_times[5],
+    ':search_times6' => $search_times[6],
+    ':delete' => 'N',
+  ));
+  foreach ($result as $data) {
     $id = $data->id;
     $time = $data->time;
     $length = $data->length;
@@ -226,7 +228,8 @@ function room_reservations($selected_month = NULL, $selected_day = NULL,
     db_set_active('default');
   }
   $user_reservations = _room_reservations_user_reservations();
-  // TODO Please change this theme call to use an associative array for the $variables parameter.
+  // TODO Please change this theme call to use an associative
+  // TODO array for the $variables parameter.
   $output = theme('room_reservations', array($dates, $categories, $reservations,
     $hours, $_room_reservations_building_hours, $building_hours_display, $rooms,
     $selected_category, $user_reservations));

@@ -6,7 +6,7 @@
  * @author Bob Humphrey, Web and Applications Developer, UNCW Randall Library
  */
 
-require_once drupal_get_path('module','room_reservations') . '/' . 'room_reservations.inc';
+require_once drupal_get_path('module', 'room_reservations') . '/' . 'room_reservations.inc';
 
 /**
  * Implements hook_menu().
@@ -272,27 +272,27 @@ function room_reservations_permission() {
   return array(
     'create room reservation category' => array(
       'title' => t('create room reservation category'),
-      'description' => t('TODO Add a description for \'create room reservation category\''),
+      'description' => t('TODO Add a description for "create room reservation category"'),
     ),
     'edit any room reservation category' => array(
       'title' => t('edit any room reservation category'),
-      'description' => t('TODO Add a description for \'edit any room reservation category\''),
+      'description' => t('TODO Add a description for "edit any room reservation category"'),
     ),
     'delete any room reservation category' => array(
       'title' => t('delete any room reservation category'),
-      'description' => t('TODO Add a description for \'delete any room reservation category\''),
+      'description' => t('TODO Add a description for "delete any room reservation category"'),
     ),
     'create room reservation room' => array(
       'title' => t('create room reservation room'),
-      'description' => t('TODO Add a description for \'create room reservation room\''),
+      'description' => t('TODO Add a description for "create room reservation room"'),
     ),
     'edit any room reservation room' => array(
       'title' => t('edit any room reservation room'),
-      'description' => t('TODO Add a description for \'edit any room reservation room\''),
+      'description' => t('TODO Add a description for "edit any room reservation room"'),
     ),
     'delete any room reservation room' => array(
       'title' => t('delete any room reservation room'),
-      'description' => t('TODO Add a description for \'delete any room reservation room\''),
+      'description' => t('TODO Add a description for "delete any room reservation room"'),
     ),
   );
 }
@@ -422,40 +422,37 @@ function room_reservations_mail($key, &$message, $params) {
  * Implements hook_cron().
  */
 function room_reservations_cron() {
-  //set defult mouth hours
+  // Set default mouth hours.
   $current_mo = date('m');
   $current_year = date('Y');
-  for($i=0;$i<5;$i++)
-  {
-    $realmonth=  intval($current_mo)+$i;
+  for ($i = 0; $i < 5; $i++) {
+    $realmonth = intval($current_mo) + $i;
     $realyear = intval($current_year);
-    while($realmonth>12)
-    {
-      $realmonth-=12;
+    while ($realmonth > 12) {
+      $realmonth -= 12;
       $realyear++;
     }
-    $str_real_month = ''.$realmonth;
-    $str_real_year = ''.$realyear;
-    if ($realmonth<10)
-    {
-      $str_real_month = '0'.$realmonth;
+    $str_real_month = '' . $realmonth;
+    $str_real_year = '' . $realyear;
+    if ($realmonth < 10) {
+      $str_real_month = '0' . $realmonth;
     }
-    
+
     $month_value = $str_real_year . '_' . $str_real_month;
     $str_month_name = 'monthly_hours_' . $month_value;
-    
+
     if (!_room_reservations_get_variable($str_month_name)) {
       $days = date('t', mktime(0, 0, 0, $str_real_month, 1, $str_real_year));
       $create_mo_hours = array();
       $default_hours = unserialize(_room_reservations_get_variable(
       'default_hours'));
       for ($day = 0; $day < $days; $day++) {
-    
+
         $dow = date('w', mktime(0, 0, 0, $str_real_month, $day + 1, $str_real_year));
-        $day_first_open = isset($default_hours[($dow * 4) + 0])?$default_hours[($dow * 4) + 0]:'9999';
-        $day_first_close = isset($default_hours[($dow * 4) + 1])?$default_hours[($dow * 4) + 1]:'9999';
-        $day_second_open = isset($default_hours[($dow * 4) + 2])?$default_hours[($dow * 4) + 2]:'9999';
-        $day_second_close = isset($default_hours[($dow * 4) + 3])?$default_hours[($dow * 4) + 3]:'9999';
+        $day_first_open = isset($default_hours[($dow * 4) + 0]) ? $default_hours[($dow * 4) + 0] : '9999';
+        $day_first_close = isset($default_hours[($dow * 4) + 1]) ? $default_hours[($dow * 4) + 1] : '9999';
+        $day_second_open = isset($default_hours[($dow * 4) + 2]) ? $default_hours[($dow * 4) + 2] : '9999';
+        $day_second_close = isset($default_hours[($dow * 4) + 3]) ? $default_hours[($dow * 4) + 3] : '9999';
         // Update the monthly hours record.
         $create_mo_hours[($day * 5)] = 'D';
         $create_mo_hours[($day * 5) + 1] = $day_first_open;
@@ -463,12 +460,10 @@ function room_reservations_cron() {
         $create_mo_hours[($day * 5) + 3] = $day_second_open;
         $create_mo_hours[($day * 5) + 4] = $day_second_close;
       }
-      $result = _room_reservations_set_variable($str_month_name,
-          serialize($create_mo_hours));
+      $result = _room_reservations_set_variable($str_month_name, serialize($create_mo_hours));
     }
   }
-  
-  
+
   // Send reservation reminders.
   $send_reminders = _room_reservations_get_variable('send_reminders');
   $last_reminders_sent = _room_reservations_get_variable('last_reminders_sent');
@@ -500,7 +495,12 @@ function room_reservations_cron() {
     ";
     $record_count = 0;
     $hours = _room_reservations_hours();
-    $result = db_query($sql, array(':date'=>$tomorrow, ':reminder_date'=>$no_reminder_sent, ':create_date'=>$cutoff, ':deleted'=>$not_deleted));
+    $result = db_query($sql, array(
+      ':date' => $tomorrow,
+      ':reminder_date' => $no_reminder_sent,
+      ':create_date' => $cutoff,
+      ':deleted' => $not_deleted,
+    ));
     if ($result) {
       foreach ($result as $data) {
         $id = $data->id;
@@ -571,7 +571,7 @@ function room_reservations_cron() {
           SET reminder_date = :reminder_date
           WHERE id = :id
         ";
-        $result2 = db_query($sql2, array(':reminder_date'=>$now, ':id'=>$id));
+        $result2 = db_query($sql2, array(':reminder_date' => $now, ':id' => $id));
       }
     }
     _room_reservations_set_variable('last_reminders_sent', $today);
@@ -622,7 +622,7 @@ function room_reservations_cron() {
  * Implements hook_form().
  */
 function room_reservations_form($node) {
-  $form = null;
+  $form = NULL;
   $type = node_type_get_type($node);
   if ($node->type == 'room_reservations_category') {
     // Category title cannot be updated.
@@ -649,8 +649,8 @@ function room_reservations_form($node) {
     }
     $form['display_name'] = array(
       '#type' => 'textfield',
-      '#title' => check_plain(isset($type->body_label)?$type->body_label:'display_category_name'),
-      '#default_value' => isset($node->display_name)?$node->display_name:'',
+      '#title' => check_plain(isset($type->body_label) ? $type->body_label : 'display_category_name'),
+      '#default_value' => isset($node->display_name) ? $node->display_name : '',
       '#required' => TRUE,
       '#size' => 50,
       '#maxlength' => 50,
@@ -661,7 +661,7 @@ function room_reservations_form($node) {
     $form['display_order'] = array(
       '#type' => 'textfield',
       '#title' => t('Display order'),
-      '#default_value' => isset($node->display_order)?$node->display_order:0,
+      '#default_value' => isset($node->display_order) ? $node->display_order : 0,
       '#required' => TRUE,
       '#size' => 2,
       '#maxlength' => 2,
@@ -691,12 +691,11 @@ function room_reservations_form($node) {
     );
     $form['display_name'] = array(
       '#type' => 'textarea',
-      '#title' => check_plain(isset($type->body_label)?$type->body_label:'display_room_name'),
-      '#default_value' => isset($node->display_name)?$node->display_name:'',
+      '#title' => check_plain(isset($type->body_label) ? $type->body_label : 'display_room_name'),
+      '#default_value' => isset($node->display_name) ? $node->display_name : '',
       '#required' => FALSE,
       '#rows' => 5,
-      '#description' => t('Information about the room that will help your
-        users select a suitable room.'),
+      '#description' => t('Information about the room that will help your users select a suitable room.'),
       '#weight' => 5,
     );
     $form['category'] = array(
@@ -705,8 +704,7 @@ function room_reservations_form($node) {
       '#default_value' => isset($node->category) ? $node->category : '',
       '#options' => $options,
       '#required' => TRUE,
-      '#description' => t('The category in which the room appears on the
-        reservation calendar.'),
+      '#description' => t('The category in which the room appears on the reservation calendar.'),
       '#weight' => 10,
     );
     $form['capacity'] = array(
@@ -747,20 +745,27 @@ function room_reservations_insert($node) {
     db_query("
       INSERT INTO {room_reservations_category}
       (nid, vid, display_order)
-      VALUES (:nid, :vid, :display_order)
-      ", array(':nid'=>$node->nid, ':vid'=>$node->vid, ':display_order'=>$node->display_order));
+      VALUES (:nid, :vid, :display_order) ", array(
+        ':nid' => $node->nid,
+        ':vid' => $node->vid,
+        ':display_order' => $node->display_order,
+      ));
     db_query("
       UPDATE {node_revision}
       SET log = :log
       WHERE vid = :vid
-      ", array(':log'=>$node->display_name, ':vid'=>$node->vid));
+      ", array(':log' => $node->display_name, ':vid' => $node->vid));
   }
   elseif ($node->type == 'room_reservations_room') {
     db_query("
       INSERT INTO {room_reservations_room}
       (nid, vid, category, capacity)
-      VALUES (:nid, :vid, :catalogry, :capacity)
-      ", array(':nid'=>$node->nid, ':vid'=>$node->vid, ':catalogry' => $node->category, ':capacity'=>$node->capacity));
+      VALUES (:nid, :vid, :catalogry, :capacity) ", array(
+        ':nid' => $node->nid,
+        ':vid' => $node->vid,
+        ':catalogry' => $node->category,
+        ':capacity' => $node->capacity,
+      ));
     db_query("
         UPDATE {node_revision}
         SET log = :log
@@ -799,8 +804,11 @@ function room_reservations_update($node) {
         UPDATE {room_reservations_room}
         SET category = :category,
         capacity = :capacity
-        WHERE vid = :vid
-        ",array(':category'=> $node->category, ':capacity' => $node->capacity, 'vid'=>$node->vid));
+        WHERE vid = :vid ", array(
+          ':category' => $node->category,
+          ':capacity' => $node->capacity,
+          'vid' => $node->vid,
+        ));
       db_query("
         UPDATE {node_revision}
         SET log = :log
@@ -818,13 +826,13 @@ function room_reservations_delete($node) {
     db_query("
       DELETE FROM {room_reservations_category}
       WHERE nid = :nid
-      ", array(':nid'=>$node->nid));
+      ", array(':nid' => $node->nid));
   }
   elseif ($node->type == 'room_reservations_room') {
     db_query("
       DELETE FROM {room_reservations_room}
       WHERE nid = :nid
-      ", array(':nid'=>$node->nid));
+      ", array(':nid' => $node->nid));
   }
 }
 
@@ -832,7 +840,8 @@ function room_reservations_delete($node) {
  * Implements hook_nodeapi().
  */
 function room_reservations_node_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
+  // TODO Remaining code in this function needs to be moved to
+  // TODO the appropriate new hook function.
   if ($node->type == 'room_reservations_category') {
     if ($op == 'delete revision') {
       db_query("
@@ -846,7 +855,7 @@ function room_reservations_node_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
       db_query("
         DELETE FROM {room_reservations_room}
         WHERE vid = :vid
-        ", array(':vid'=>$node->vid));
+        ", array(':vid' => $node->vid));
     }
   }
 }
@@ -854,11 +863,9 @@ function room_reservations_node_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
 /**
  * Implements hook_load().
  */
-
 function room_reservations_load($nodes) {
   // ERROR: return statement not found in hook_load
-  foreach ($nodes as $node)
-  {
+  foreach ($nodes as $node) {
     if ($node->type == 'room_reservations_category') {
       $result = db_query("
         SELECT {nid,display_order}
@@ -866,7 +873,7 @@ function room_reservations_load($nodes) {
         WHERE vid = :vid
         ", array(':vid' => $node->vid));
       foreach ($result as $data) {
-        $nodes[$data->nid]->display_order=$data->display_order;
+        $nodes[$data->nid]->display_order = $data->display_order;
       }
       $result = db_query("
         SELECT {nid,log}
@@ -874,7 +881,7 @@ function room_reservations_load($nodes) {
         WHERE vid = :vid
         ", array(':vid' => $node->vid));
       foreach ($result as $data) {
-        $nodes[$data->nid]->display_name=$data->log;
+        $nodes[$data->nid]->display_name = $data->log;
       }
     }
     elseif ($node->type == 'room_reservations_room') {
@@ -894,11 +901,10 @@ function room_reservations_load($nodes) {
         WHERE vid = :vid
         ", array(':vid' => $node->vid));
       foreach ($result as $data) {
-        $nodes[$data->nid]->display_name=$data->log;
+        $nodes[$data->nid]->display_name = $data->log;
       }
     }
   }
-
 }
 
 /**
@@ -906,24 +912,24 @@ function room_reservations_load($nodes) {
  */
 function room_reservations_view($node, $view_mode) {
   if ($node->type == 'room_reservations_category') {
-    if ($view_mode=='full' ){
-//      $node = node_prepare($node, $teaser);
+    if ($view_mode == 'full') {
+      // $node = node_prepare($node, $teaser);
     }
     else {
-//      $node = node_prepare($node, $teaser);
+      // $node = node_prepare($node, $teaser);
       $node->content['order'] = array(
         '#value' => '<b>' . t('Display order') . ':</b>  ' .
-        isset($node->display_order)?$node->display_order:'' . '<br /><br />',
+        isset($node->display_order) ? $node->display_order : '' . '<br/><br/>',
         '#weight' => 10,
       );
     }
   }
   elseif ($node->type == 'room_reservations_room') {
-    if ($view_mode=='full' ) {
-//      $node = node_prepare($node, $teaser);
+    if ($view_mode == 'full') {
+      // $node = node_prepare($node, $teaser);
     }
     else {
-//      $node = node_prepare($node, $teaser);
+      // $node = node_prepare($node, $teaser);
       $display_category = '';
       $categories = _room_reservations_categories();
       foreach ($categories as $category) {
@@ -940,8 +946,7 @@ function room_reservations_view($node, $view_mode) {
         '#weight' => 10,
       );
       $node->content['capacity'] = array(
-        '#value' => '<b>' . t('Capacity') . ':</b>  ' . isset($node->capacity)?$node->capacity:'' .
-        '<br /><br />',
+        '#value' => '<b>' . t('Capacity') . ':</b>  ' . isset($node->capacity) ? $node->capacity : '' . '<br/><br/>',
         '#weight' => 15,
       );
     }

@@ -1,4 +1,4 @@
-<?php //
+<?php
 /**
  * @file
  * Miscellaneous controller functionality.
@@ -25,7 +25,8 @@ function room_reservations_res_list() {
     $user_reservations = _room_reservations_user_reservations();
     $count = count($user_reservations);
   }
-  // TODO Please change this theme call to use an associative array for the $variables parameter.
+  // TODO Please change this theme call to use an associative
+  // TODO array for the $variables parameter.
   $output = theme('room_reservations_list', array($user, $base_url,
       $user_reservations, $count));
   return $output;
@@ -52,7 +53,8 @@ function room_reservations_policies() {
 function room_reservations_descriptions() {
   $categories = _room_reservations_categories();
   $rooms = _room_reservations_rooms();
-  // TODO Please change this theme call to use an associative array for the $variables parameter.
+  // TODO Please change this theme call to use an associative
+  // TODO array for the $variables parameter.
   $output = theme('room_reservations_descriptions', array($categories, $rooms));
   return $output;
 }

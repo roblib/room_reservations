@@ -212,15 +212,17 @@ class Reservation {
         AND deleted = :deleted
       ";
       $record_count = 0;
-      $result = db_query($sql, array(':id'=>$id, ':deleted'=>'N'));
+      $result = db_query($sql, array(':id' => $id, ':deleted' => 'N'));
       if ($result) {
-        foreach ($result as $data){
+        foreach ($result as $data) {
           $this->id = $id;
           $this->date = $data->date;
           $this->time = $data->time;
           $this->length = $data->length;
           $this->room = $data->room;
-          $this->name = check_plain($data->name);
+          // $this->name = check_plain($data->name);
+          $this->name = $data->name;
+          // $this->name = htmlspecialchars_decode(check_plain($data->name));
           $this->groupSize = $data->group_size;
           $this->userName = $data->user_name;
           $this->emailAddresses = check_plain($data->email_addresses);
@@ -258,7 +260,7 @@ function _room_reservations_categories() {
     WHERE {node}.type = :type
     ORDER BY {room_reservations_category}.display_order
   ";
-  $result = db_query($sql,array( ':type'=>'room_reservations_category'));
+  $result = db_query($sql, array(':type' => 'room_reservations_category'));
   if ($result) {
     foreach ($result as $data) {
       $category_name = check_plain($data->title);
@@ -268,9 +270,8 @@ function _room_reservations_categories() {
         'display' => $display_name,
       );
     }
-
   }
-  
+
   return $categories;
 }
 
@@ -295,7 +296,7 @@ function _room_reservations_rooms() {
     WHERE {node}.type = :type 
     ORDER BY {node_revision}.title
   ";
-  $result = db_query($sql,array(':type' => 'room_reservations_room'));
+  $result = db_query($sql, array(':type' => 'room_reservations_room'));
   if ($result) {
     foreach ($result as $data) {
       $rooms[] = array(
@@ -551,6 +552,9 @@ function _room_reservations_hours($option = NULL) {
  * Create an array of open hours information for each day for which a
  * reservation can be made.
  *
+ * @param bool $reset
+ *   Reset true/false
+ *
  * @return array
  *   A two dimensional array, with the first dimension representing a single
  *   day for which a reservation can be made, and the second dimension
@@ -623,10 +627,10 @@ function _room_reservations_facility_hours($reset = FALSE) {
       $yyyymmdd = $yyyymmdd_yyyy . '-' .
         $yyyymmdd_mm . '-' .
         $yyyymmdd_dd;
-      $first_shift_open = isset($mo_hours[($start + ($x * 5) + 1)])?$mo_hours[($start + ($x * 5) + 1)]:'9999';
-      $first_shift_close = isset($mo_hours[($start + ($x * 5) + 2)])?$mo_hours[($start + ($x * 5) + 2)]:'9999';
-      $second_shift_open = isset($mo_hours[($start + ($x * 5) + 3)])?$mo_hours[($start + ($x * 5) + 3)]:'9999';
-      $second_shift_close = isset($mo_hours[($start + ($x * 5) + 4)])?$mo_hours[($start + ($x * 5) + 4)]:'9999';
+      $first_shift_open = isset($mo_hours[($start + ($x * 5) + 1)]) ? $mo_hours[($start + ($x * 5) + 1)] : '9999';
+      $first_shift_close = isset($mo_hours[($start + ($x * 5) + 2)]) ? $mo_hours[($start + ($x * 5) + 2)] : '9999';
+      $second_shift_open = isset($mo_hours[($start + ($x * 5) + 3)]) ? $mo_hours[($start + ($x * 5) + 3)] : '9999';
+      $second_shift_close = isset($mo_hours[($start + ($x * 5) + 4)]) ? $mo_hours[($start + ($x * 5) + 4)] : '9999';
       if (($first_shift_open == '9999') &&
         ($first_shift_close == '9999') &&
         ($second_shift_open == '9999') &&
@@ -685,7 +689,7 @@ function _room_reservations_facility_hours($reset = FALSE) {
  * Creates a string for displaying the open hours for a single day.
  *
  * @param array $day_hours
- *   An array that represents the openning and closing hours for two
+ *   An array that represents the opening and closing hours for two
  *   separate shifts in a single day
  *
  * @return string
@@ -910,8 +914,6 @@ function _room_reservations_first_slot_open($yyyymmdd) {
  */
 function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
   // Previous and next days.
-  
-
   $previous_day = date('Y-m-d', strtotime("$yyyymmdd -1 days"));
   // Start times of other reservations that could conflict with this one.
   // Since reservations are limited to 2 hours, we are interested in times that
@@ -939,7 +941,6 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
   }
   for ($x = 0; $x < $max_slots; $x++) {
     if ($time_slot == NULL) {
-      
       $day = $previous_day;
       $hours = _room_reservations_hours();
       $time_slot = array_pop($hours);
@@ -950,7 +951,7 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
     $search_items[$x] = $search_item;
     $time_slot = array_pop($hours);
   }
-  
+
   $mobile_db = _room_reservations_detect_mobile_db();
   if ($mobile_db) {
     $mainsite = trim(_room_reservations_get_variable('main_database'));
@@ -985,18 +986,19 @@ function _room_reservations_start_conflicts($room, $yyyymmdd, $time) {
     length > :length7)
     )
   ";
-  $result = db_query($sql, array (':delete'=>'N', ':room'=>$room, 
-                                  ':date0' => $search_items[0]['date'], ':time0'=> $search_items[0]['start_time'], ':length0'=> $search_items[0]['length'], 
-                                  ':date1' => $search_items[1]['date'], ':time1'=> $search_items[1]['start_time'], ':length1'=> $search_items[1]['length'],
-                                  ':date2' => $search_items[2]['date'], ':time2'=> $search_items[2]['start_time'], ':length2'=> $search_items[2]['length'],
-                                  ':date3' => $search_items[3]['date'], ':time3'=> $search_items[3]['start_time'], ':length3'=> $search_items[3]['length'],
-                                  ':date4' => $search_items[4]['date'], ':time4'=> $search_items[4]['start_time'], ':length4'=> $search_items[4]['length'],
-                                  ':date5' => $search_items[5]['date'], ':time5'=> $search_items[5]['start_time'], ':length5'=> $search_items[5]['length'],
-                                  ':date6' => $search_items[6]['date'], ':time6'=> $search_items[6]['start_time'], ':length6'=> $search_items[6]['length'],
-                                  ':date7' => $search_items[7]['date'], ':time7'=> $search_items[7]['start_time'], ':length7'=> $search_items[7]['length']));
+  $result = db_query($sql, array(
+    ':delete' => 'N', ':room' => $room,
+    ':date0' => $search_items[0]['date'], ':time0' => $search_items[0]['start_time'], ':length0' => $search_items[0]['length'],
+    ':date1' => $search_items[1]['date'], ':time1' => $search_items[1]['start_time'], ':length1' => $search_items[1]['length'],
+    ':date2' => $search_items[2]['date'], ':time2' => $search_items[2]['start_time'], ':length2' => $search_items[2]['length'],
+    ':date3' => $search_items[3]['date'], ':time3' => $search_items[3]['start_time'], ':length3' => $search_items[3]['length'],
+    ':date4' => $search_items[4]['date'], ':time4' => $search_items[4]['start_time'], ':length4' => $search_items[4]['length'],
+    ':date5' => $search_items[5]['date'], ':time5' => $search_items[5]['start_time'], ':length5' => $search_items[5]['length'],
+    ':date6' => $search_items[6]['date'], ':time6' => $search_items[6]['start_time'], ':length6' => $search_items[6]['length'],
+    ':date7' => $search_items[7]['date'], ':time7' => $search_items[7]['start_time'], ':length7' => $search_items[7]['length']));
   $conflicts_found = FALSE;
   if ($result) {
-    foreach($result as $data) {
+    foreach ($result as $data) {
       $conflicts_found = TRUE;
     }
   }
@@ -1065,8 +1067,8 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
       break;
     }
   }
-  // If it's possible for the reservation to span 2 days, get the time slots
-  // for the subsequent day.
+  // If it's possible for the reservation to span 2 days, get the time
+  // slots for the subsequent day.
   if ($x < $max_slots) {
     $include = TRUE;
     $day = date('Y-m-d', strtotime("$yyyymmdd +1 days"));
@@ -1085,7 +1087,7 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
     }
   }
   // Determine if the reservation at each possible length would conflict with
-  // another reservtion.  If so, set is_valid for that length to FALSE.
+  // another reservation.  If so, set is_valid for that length to FALSE.
   // The first time slot has already been validated and does not need to be
   // checked again.
   $mobile_db = _room_reservations_detect_mobile_db();
@@ -1099,8 +1101,7 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
       $search_item = $search_items[$x];
       $date = $search_item['date'];
       $start_time = $search_item['start_time'];
-      if(!$id)
-      {
+      if (!$id) {
         $id = 0;
       }
       $sql = "
@@ -1110,9 +1111,15 @@ function _room_reservations_valid_lengths($room, $yyyymmdd, $time, $id = NULL) {
           AND	time = :time AND id <> :id
       ";
       $conflicts_found = FALSE;
-      $result = db_query($sql, array('deleted' => 'N', ':room' => $room, ':date' => $date, ':time' => $start_time, ':id' => $id));
+      $result = db_query($sql, array(
+        'deleted' => 'N',
+        ':room' => $room,
+        ':date' => $date,
+        ':time' => $start_time,
+        ':id' => $id,
+      ));
       if ($result) {
-        foreach($result as $data) {
+        foreach ($result as $data) {
           $conflicts_found = TRUE;
         }
       }
@@ -1237,7 +1244,11 @@ function _room_reservations_daily_max_exceeded($yyyymmdd) {
        AND date = ':date'
       AND deleted = ':delete'
     ";
-    $result = db_query($sql, array(':username'=>$user->name,':date'=>$yyyymmdd, ':delete'=>'N'));
+    $result = db_query($sql, array(
+      ':username' => $user->name,
+      ':date' => $yyyymmdd,
+      ':delete' => 'N',
+    ));
     if ($result) {
       foreach ($result as $data) {
         $record_count++;
@@ -1316,10 +1327,12 @@ function _room_reservations_user_reservations() {
       AND deleted = :deleted
       ORDER BY date, time
     ";
-    $result = db_query($sql,array(':user_name' => $user->name, 
-                                  ':earliest_date' => $earliest_date, 
-                                  ':latest_date' => $latest_date, 
-                                  ':deleted'=>'N'));
+    $result = db_query($sql, array(
+      ':user_name' => $user->name,
+      ':earliest_date' => $earliest_date,
+      ':latest_date' => $latest_date,
+      ':deleted' => 'N',
+    ));
     if ($result) {
       foreach ($result as $data) {
         $reservation = array();
@@ -1394,7 +1407,7 @@ function _room_reservations_carriers() {
     WHERE name = :name
     ORDER BY value
   ";
-  $result = db_query($sql, array(':name'=>'carrier'));
+  $result = db_query($sql, array(':name' => 'carrier'));
   if ($result) {
     foreach ($result as $data) {
       $carrier = explode('~', $data->value);
@@ -1432,9 +1445,9 @@ function _room_reservations_carrier_address($carrier) {
     WHERE name = :name
     ORDER BY id
   ";
-  $result = db_query($sql, array(':name'=>'carrier'));
+  $result = db_query($sql, array(':name' => 'carrier'));
   if ($result) {
-    foreach ($result as $data){
+    foreach ($result as $data) {
       $car = explode('~', $data->value);
       $id = $data->id;
       if ($id == $carrier) {
@@ -1463,7 +1476,7 @@ function _room_reservations_send_sms($message_type, $params) {
   $subject = _room_reservations_replace_tokens(check_plain(
     _room_reservations_get_variable('confirmation_header_text_sms')), $params);
   $day_of_week = drupal_substr($params['day_of_week'], 0, 3) . '.';
-  $message_body="";
+  $message_body = "";
   if ($message_type == 'confirmation') {
     $message_body = _room_reservations_replace_tokens(check_plain(
       _room_reservations_get_variable('confirmation_owner_text_sms')), $params);
@@ -1600,7 +1613,7 @@ function _room_reservations_set_variable($key, $value) {
       SET value = :value
       WHERE id = :id
     ";
-    $result = db_query($sql, array(':value'=> $value , ':id' => $id));
+    $result = db_query($sql, array(':value' => $value, ':id' => $id));
     return $result;
   }
   else {
@@ -1609,8 +1622,7 @@ function _room_reservations_set_variable($key, $value) {
       (name, value)
       VALUES (:name, :value)
     ";
-    $result = db_query($sql, array(':name'=> $key , 
-                                   ':value' => $value));
+    $result = db_query($sql, array(':name' => $key, ':value' => $value));
     return $result;
   }
 }
@@ -1631,13 +1643,13 @@ function _room_reservations_delete_variable($key) {
     FROM {room_reservations_variables}
     WHERE name = :name
   ";
-  $id = db_query($sql, array(':name'=>$key))->fetchField();
+  $id = db_query($sql, array(':name' => $key))->fetchField();
   if ($id) {
     $sql = "
       DELETE FROM {room_reservations_variables}
       WHERE id = :id
       ";
-    $result = db_query($sql, array(':id'=>$id));
+    $result = db_query($sql, array(':id' => $id));
     return $result;
   }
   return FALSE;
@@ -1677,4 +1689,40 @@ function _room_reservations_detect_mobile_db() {
   else {
     return FALSE;
   }
+}
+
+/**
+ * Use HTTP_USER_AGENT to determine if user is on a mobile device.
+ */
+function _detect_mobile($type = NULL) {
+  $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+  if ($type == 'bot') {
+    // Matches popular bots.
+    if (preg_match("/googlebot|adsbot|yahooseeker|yahoobot|msnbot|watchmouse|pingdom\.com|feedfetcher-google/", $user_agent)) {
+      return TRUE;
+    }
+  }
+  elseif ($type == 'browser') {
+    // Matches core browser types.
+    if (preg_match("/mozilla\/|opera\//", $user_agent)) {
+      return TRUE;
+    }
+  }
+  elseif ($type == 'mobile') {
+    // Matches popular mobile devices that have small screens
+    // and/or touch inputs.
+    // Mobile devices have regional trends--some of these will
+    // have varying popularity in Europe, Asia, and America.
+    // Detailed demographics are unknown, and South America,
+    // the Pacific Islands, and Africa trends might not be represented here.
+    if (preg_match("/phone|iphone|itouch|ipod|symbian|android|htc_|htc-|palmos|blackberry|opera mini|iemobile|windows ce|nokia|fennec|hiptop|kindle|mot |mot-|webos\/|samsung|sonyericsson|^sie-|nintendo/", $user_agent)) {
+      // These are the most common.
+      return TRUE;
+    }
+    elseif (preg_match("/mobile|pda;|avantgo|eudoraweb|mobi|minimo|netfront|brew|teleca|lg;|lge |wap;| wap /", $user_agent)) {
+      // These are less common and might not be worth checking.
+      return TRUE;
+    }
+  }
+  return FALSE;
 }

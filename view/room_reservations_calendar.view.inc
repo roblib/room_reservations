@@ -14,33 +14,8 @@ module_load_include('inc', 'room_reservations', '/view/room_reservations.view');
  * @global type $base_url
  *   Application base url.
  *
- * @param array $dates
- *   An array containing information about all the possible days for which a
- *   reservtion can be made.
- * @param array $categories
- *   An array of all the room categories.
- * @param array $reservations
- *   An array representing all the reservations that have been made for the
- *   day that is being displayed on the calendar.
- * @param array $hours
- *   An array representing every half hour time slot in a single day.
- * @param array $building_hours
- *   A two dimensional array, with the first dimension representing a single
- *   day for which a reservation can be made, and the second dimension
- *   representing information about the facility's open hours for that day, such
- *   as whether the facility is open that day, the number of open shifts,
- *   open and close hours, and a string that can be used to display the hours
- *   in a user friendly way.
- * @param string $building_hours_display
- *   A user friendly string of the open hours for the day being displayed
- *   on the calendar.
- * @param array $rooms
- *   An array representing all of the rooms that can be reserved.
- * @param string $selected_category
- *   The current category the user has selected, if any.
- * @param array $user_reservations
- *   An array representing the current user's reservations for the allowable
- *   reservation period.
+ * @param array $variables
+ *   Drupal array.
  *
  * @return string
  *   The html for displaying the page.
@@ -54,7 +29,8 @@ function theme_room_reservations($variables) {
   $building_hours_display = $variables['5'];
   $rooms = $variables['6'];
   $selected_category = $variables['7'];
-  // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
+  // TODO Number of parameters in this theme function does not
+  // TODO match number of parameters found in hook_theme.
   // User information.
   $full_access = FALSE;
   $user_login_name = NULL;
@@ -75,8 +51,10 @@ function theme_room_reservations($variables) {
       $yyyymmdd = $day['yyyymmdd'];
     }
   }
+
   // Determine mobile or desktop.
-  $mobile = _room_reservations_detect_mobile();
+  $mobile = _detect_mobile('mobile');
+
   // Mobile display.
   if ($mobile) {
     $output = "<div id='rooms-mobile'><div id='info'>";
@@ -96,14 +74,13 @@ function theme_room_reservations($variables) {
     // Calendar date.
     $display_date = $day_of_week . ', ' . $month . ' ' . $xday . ', ' . $year;
     $output .= "<b>" . t('Reservation Calendar') . "</b>
-      <div class='hours'>" . t($display_date) . '<br />' .
-      t($building_hours_display) . '<br /><b>' . $display_room .
+      <div class='hours'>" . $display_date . '<br />' .
+      $building_hours_display . '<br /><b>' . $display_room .
       '</b></br></div>';
     // Table to display times and reservations.
     $output .= '<table>';
     foreach ($hours as $time_slot) {
-      $output .= '<tr><td>' . t($time_slot['display']) .
-        '&nbsp;&nbsp;</td><td>';
+      $output .= '<tr><td>' . $time_slot['display'] . '&nbsp;&nbsp;</td><td>';
       if (!$time_slot['open']) {
         // The building is closed.
         $output .= t('Closed');
@@ -116,8 +93,8 @@ function theme_room_reservations($variables) {
           // and the user is allowed to view any reservation.
           if ($reservations[$display_room][$time_slot_time]['name']) {
             $output .= "<a href='" . $base_url . '/room_reservations/view/' .
-              $reservations[$display_room][$time_slot_time]['id'] . "'>" .
-              check_plain($reservations[$display_room][$time_slot_time]['name'])
+              $reservations[$display_room][$time_slot_time]['id'] . "'>"
+                . check_plain($reservations[$display_room][$time_slot_time]['name'])
               . '</a>';
           }
           else {
@@ -131,8 +108,8 @@ function theme_room_reservations($variables) {
           // current user.
           if ($reservations[$display_room][$time_slot_time]['name']) {
             $output .= "<a href='" . $base_url . '/room_reservations/view/' .
-              $reservations[$display_room][$time_slot_time]['id'] . "'>" .
-              check_plain($reservations[$display_room][$time_slot_time]['name'])
+              $reservations[$display_room][$time_slot_time]['id'] . "'>"
+                . check_plain($reservations[$display_room][$time_slot_time]['name'])
               . '</a>';
           }
           else {
@@ -145,8 +122,7 @@ function theme_room_reservations($variables) {
           // The room has already been reserved for this time slot by a
           // different user.
           if ($reservations[$display_room][$time_slot_time]['name']) {
-            $output .= check_plain(
-              $reservations[$display_room][$time_slot_time]['name']);
+            $output .= check_plain($reservations[$display_room][$time_slot_time]['name']);
           }
           else {
             $output .= '&nbsp;&nbsp;"';
@@ -177,14 +153,10 @@ function theme_room_reservations($variables) {
   }
   // Desktop display.
   else {
-    $calendar_text
-      = check_markup(_room_reservations_get_variable('calendar_text'));
-    $reserve_room_instructions_text = check_markup(
-      _room_reservations_get_variable('reserve_instructions'));
+    $calendar_text = check_markup(_room_reservations_get_variable('calendar_text'));
+    $reserve_room_instructions_text = check_markup(_room_reservations_get_variable('reserve_instructions'));
     if (!$reserve_room_instructions_text) {
-      $reserve_room_instructions_text
-        = t('To reserve a room, click on the desired time/day in the calendar
-        below.  You will be asked to login.');
+      $reserve_room_instructions_text = t('To reserve a room, click on the desired time/day in the calendar below. You will be asked to login.');
     }
     // Room reservations container.
     $output = "<div id='rooms'>";
@@ -196,30 +168,34 @@ function theme_room_reservations($variables) {
       "/view/images/007354-blue-jelly-icon-arrows-arrow-sparkle.png' />
       <span id='start'>" . $reserve_room_instructions_text .
       '</span></div></div>';
+
     // Calendar date.
-    $output .= "<h3 class='date'>" . t('Reservation Calendar') . '</h3>' .
-      "<div class='hours'>"  . $day_of_week . ", " . $month . ' ' . $xday .
-      ", " . $year . '&nbsp;&nbsp;' . $building_hours_display . '</div>' .
-      "<div id='date-change'><select id='date-selectbox'><option value='#'>" .
-      t('View a different day') . '</option>';
+    $output .= "<h3 class='date'>" . t('Reservation Calendar') . '</h3>'
+                . "<div class='hours'>"
+                  . $day_of_week . ", " . $month . ' ' . $xday . ", " . $year . '&nbsp;&nbsp;' . $building_hours_display
+                . '</div>'
+                . "<div id='date-change'>
+                    <select id='date-selectbox'><option value='#'>" . t('View a different day') . '</option>';
+
     foreach ($dates as $day) {
       $building_hours_day = $building_hours[$day['yyyymmdd']];
       if (($building_hours_day['open']) && (!$day['selected'])) {
         $output .= "<option value='" . $day['month-number'] . '/' .
-        $day['day'] . "'>" . t($day['display']) . '</option>';
+        $day['day'] . "'>" . $day['display'] . '</option>';
       }
     }
+
     $output .= '</select></div>';
     // Reservation calendar grid:
     //
     // Each block on the grid is assigned one of the following classes:
-    //
     // closed - the building is closed;
     // booked - the building is open and the time slot has been reserved;
     // open - the building is open, the time slot has not been reserved, but
     // the user must login to reserve the time slot;
     // reservable - the building is open, the time slot has not been reserved,
     // and the user is able to reserve the time slot.
+
     // Tabs.
     $output .= "<ul class='room-tabs'>";
     $i = 0;
@@ -255,25 +231,15 @@ function theme_room_reservations($variables) {
       else {
         $show = ($category['category'] == $selected_category) ? 'show' : 'hide';
       }
-      // Date and building hours.
-      $output .= "<div id='" . t($category['category']) . "' class='panel " .
-        $show . "'><div class='gcolumns'>
-        <div class='grid-column hours-column'><ul><li class='room-info'>" .
-        t('Room') . '</li>';
-      $output .= "<li class='room-info room-info-heading'>" . t('Capacity') .
-        '</li>';
-      // Available hours column.
-      foreach ($hours as $time_slot) {
-        $time_display = ($time_slot['class'] == 'odd') ?
-          t($time_slot['display']) : "";
-        $output .= "<li class='" . $time_slot['class'] . " timeslot' time='" .
-          $time_slot['time'] . "' " .
-          '>' . $time_display . '</li>';
-      }
-      $output .= "<li class='room-info room-info-footer'>" . t('Room') .
-        '</li>';
-      $output .= "<li class='room-info'>" . t('Capacity') . '</li>';
-      $output .= '</ul></div>';
+
+//
+//
+
+      $output .= "<div id = '" . $category['category'] . "' class = 'panel " . $show . "'>";
+
+      $hour_column = room_reservations_build_hours_column2($hours);
+      $output .= $hour_column;
+
       // Count the number of rooms in the selected category.
       $rooms_per_category = 0;
       foreach ($rooms as $room) {
@@ -281,8 +247,21 @@ function theme_room_reservations($variables) {
           $rooms_per_category++;
         }
       }
+
       // Column for each room in the category.
+      $room_count = 0;
       foreach ($rooms as $room) {
+        if ($room['category'] == $category['category']) {
+          $room_count++;
+
+          // Wrap and repeat hours column after every 7th room per category.
+          if ($room_count == 8 OR $room_count == 15 OR $room_count == 22 OR $room_count == 29
+              OR $room_count == 36 OR $room_count == 43 OR $room_count == 50) {
+            $output .= "</div>";
+            $output .= room_reservations_build_hours_column2($hours);
+          }
+        }
+
         $room_name = $room['name'];
         if ($room['category'] == $category['category']) {
           // Room name, capacity.
@@ -305,7 +284,7 @@ function theme_room_reservations($variables) {
               $booked_class = 'closed';
             }
             // The time slot can be reserved by the current user.
-            $viewable_class=null;
+            $viewable_class = NULL;
             if ($booked_class == 'reservable') {
               $link = "<a href='" . $base_url . "/room_reservations/add/" .
                 $month_number . "/" . $xday . "/" .
@@ -330,25 +309,26 @@ function theme_room_reservations($variables) {
             }
             else {
               // The time slot has a reservation that can be viewed by the
-              // current user. 
+              // current user.
+
               $user_name = $reservations[$room_name][$time]['user_name'];
+
               $viewable_class = (($full_access) ||
                 ($user_login_name == $user_name)) ? 'viewable' : '';
               if ($viewable_class == 'viewable') {
                 $id = $reservations[$room_name][$time]['id'];
-                $link = "<a href='" . $base_url .
-                "/room_reservations/view/" . $id . "'>" .
-                check_plain($reservations[$room_name][$time]['name']) . '</a>';
+                $link = "<a href='" . $base_url . "/room_reservations/view/" . $id . "'>" .
+                htmlspecialchars_decode(check_plain($reservations[$room_name][$time]['name'])) . '</a>';
               }
               else {
                 // The time slot has a reservation that cannot be viewed by
                 // the current user.
-                $link = check_plain($reservations[$room_name][$time]['name']);
+                $link = htmlspecialchars_decode(check_plain($reservations[$room_name][$time]['name']));
               }
             }
             // Room name and capacity.
             $output .= "<li class='" . $time_slot['class'] . ' ' .
-              $booked_class .  " " . $viewable_class . "'>" . $link . "</li>";
+              $booked_class . " " . $viewable_class . "'>" . $link . "</li>";
           }
           $output .= "<li class='room-info room-info-footer'><a href='" .
             $base_url . "/room_reservations/rooms/#" .
@@ -358,12 +338,39 @@ function theme_room_reservations($variables) {
           $output .= '</ul></div>';
         }
       }
-      $output .=
-        '</div></div>';
+
+      $output .= '</div></div>';
     }
-    $output .= '</div>';
-    $output .= '</div>';
-    $output .= '</div>';
+
+    $output .= '</div></div></div>';
   }
+
+  return $output;
+}
+
+/**
+ * Build hours of day column.
+ *
+ * @param array $hours
+ *   Array of hours.
+ *
+ * @return string
+ *   The HTML for displaying the hours of day column.
+ */
+function room_reservations_build_hours_column($hours) {
+
+  $output = "<div class='gcolumns'>
+              <div class='grid-column hours-column'><ul><li class='room-info'>" . t('Room') . "</li>
+                <li class='room-info room-info-heading'>" . t('Capacity') . '</li>';
+
+  foreach ($hours as $time_slot) {
+    $time_display = ($time_slot['class'] == 'odd') ? $time_slot['display'] : "";
+    $output .= "<li class='" . $time_slot['class'] . " timeslot' time='" . $time_slot['time']
+      . "' " . '>' . $time_display . '</li>';
+  }
+
+  $output .= "<li class='room-info room-info-footer'>" . t('Room') . "</li>
+              <li class='room-info'>" . t('Capacity') . "</li></ul></div>";
+
   return $output;
 }
