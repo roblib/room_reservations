@@ -1,0 +1,74 @@
+<?php
+/**
+ * @file
+ * Description.
+ */
+
+/**
+ * Implements hook_schema().
+ *
+ *   Required Nodes (TODO use Entities:
+ *      - room category (possibly should be a taxonomy)
+ *      - room
+ *      - reservation 
+ */
+function room_reservations_schema() {
+  $schema['room_reservations_variables'] = array(
+    'description' => '',
+    'fields' => array(
+      'id' => array(
+        'description' => '',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+      ),
+      'value' => array(
+        'description' => '',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function room_reservations_uninstall() {
+  /*
+  db_query("DELETE FROM {node_type} WHERE type LIKE 'room_reservations_%'");
+  db_query("DELETE FROM {field_config} WHERE field_name LIKE 'rooms_%'");
+  db_query("
+  DELETE FROM {field_config_instance}
+  WHERE bundle LIKE 'room_reservations_category'
+  ");
+  db_query("
+  DELETE FROM {field_config_instance}
+  WHERE bundle LIKE 'room_reservations_room'
+  ");
+  db_drop_table('{field_data_rooms_room_category}');
+  db_drop_table('{field_data_rooms_room_capacity}');
+  db_drop_table('{field_revision_rooms_room_category}');
+  db_drop_table('{field_revision_rooms_room_capacity}');
+  db_drop_table('{field_data_reservation_room}');
+  db_drop_table('{field_revision_reservation_room}');
+  */
+
+  // Remove reservation type.
+  db_query("DELETE FROM {node_type} WHERE type LIKE 'room_reservations_%'");
+  db_query("DELETE FROM {field_config} WHERE field_name LIKE 'reservation%'");
+  db_query("DELETE FROM {field_config} WHERE field_name IN ('room_category', 'room_capacity')");
+  db_query("DELETE FROM {field_config_instance} WHERE bundle LIKE 'room_reservations_%'");
+}
