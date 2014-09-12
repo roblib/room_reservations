@@ -266,7 +266,8 @@ function _room_reservations_rooms() {
   $rooms = array();
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'node')
-    ->entityCondition('bundle', 'room_reservations_room')   
+    ->entityCondition('bundle', 'room_reservations_room')
+    ->propertyCondition('status', '1')
     // dangerous as this does more than Order By as it does not include records which do not have this field set
     ->fieldOrderBy('reservation_display_order', 'value', 'ASC');
   $result = $query->execute();
