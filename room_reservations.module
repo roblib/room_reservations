@@ -318,10 +318,13 @@ function room_reservations_form_user_admin_permissions_alter(&$form, &$form_stat
  * Implements hook_validate().
  */
 function room_reservations_validate($node, $form, &$form_state) {
+  $over_ride_role = variable_get('room_reservations_override_role', 'administrator');
+  global $user;
   /* If this is not a room reservation or we are not actually creating a new
   node we don't need to check for max reservaations so return TRUE.  */
   if ($node->type != 'room_reservations_reservation' ||
-    $form_state['values']['op'] == 'Cancel Reservation' || !empty($node->nid)) {
+    $form_state['values']['op'] == 'Cancel Reservation' || !empty($node->nid) ||
+    in_array($over_ride_role, $user->roles)) {
     return TRUE;
   }
   // TODO pull into a function as this code is duplicated here and in the form function.

@@ -53,7 +53,16 @@ function room_reservations_admin_settings($form, &$form_state) {
        calendar page.'),
     '#default_value' => variable_get('room_reservations_title', 'Room Reservations'),
     '#weight' => -100,
-  );           
+  );
+  $form['room_reservations_override_role'] = array(
+    '#title' => t('Reservation Override Role'),
+    '#type' => 'textfield',
+    '#maxlength' => 50,
+    '#size' => 50,
+    '#description' => t('A user role that will allow override of max reservation configuration.  Users with this role will be able to book as many reservations as they like.'),
+    '#default_value' => variable_get('room_reservations_override_role', 'administrator'),
+    '#weight' => -95,
+  );
   $form['room_reservations_advance_standard'] = array(
     '#title' => t('Days in advance (standard)'),
     '#type' => 'select',

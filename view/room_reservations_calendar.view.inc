@@ -173,11 +173,11 @@ function theme_room_reservations($variables) {
       <span id='start'>" . $reserve_room_instructions_text . '</span></div></div>';
     
     // Calendar date.
-    $output .= '<h3 class="date">' . t('Reservation Calendar') . '</h3>' .
+    $output .= '<div class="calendar_block"><h3 class="date">' . t('Reservation Calendar') . '</h3>' .
       '<div class="hours">'  . $day_of_week . ', ' . $month . ' ' . $xday . ', ' . $year . '&nbsp;&nbsp;' . $building_hours_display . '</div>';
     
     // add new Day Selector as popup calendar since we now allow going out up to 6 months rather than 15 days.
-    $output .= '<div id="date-change">' . drupal_render(drupal_get_form('room_reservations_admin_date_picker')) . '</div>';
+    $output .= '<div id="date-change">' . drupal_render(drupal_get_form('room_reservations_admin_date_picker')) . '</div></div>';
     
     // Reservation calendar grid:
     //
