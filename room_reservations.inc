@@ -1215,10 +1215,12 @@ function _room_reservations_user_max_exceeded() {
     return FALSE;
   }
   global $user;
+  $yyyymmdd = date('Y-m-d');
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'node')
     ->entityCondition('bundle', 'room_reservations_reservation')
-    ->propertyCondition('uid', $user->uid);
+    ->propertyCondition('uid', $user->uid)
+    ->fieldCondition('reservation_date', 'value', $yyyymmdd, '>=');
   $result = $query->execute();
   if (isset($result['node'])) {
     $rids = array_keys($result['node']);
