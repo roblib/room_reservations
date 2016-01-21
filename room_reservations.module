@@ -320,6 +320,10 @@ function room_reservations_form_user_admin_permissions_alter(&$form, &$form_stat
 function room_reservations_validate($node, $form, &$form_state) {
   $over_ride_role = variable_get('room_reservations_override_role', 'administrator');
   global $user;
+  if ($node->type == 'room_reservations_reservation' &&
+    strlen($node->title) > 25 && $form_state['values']['op'] == 'Save'){
+    form_error($form, t('Group Name must be less then 25 characters.'));
+  }
   /* If this is not a room reservation or we are not actually creating a new
   node we don't need to check for max reservaations so return TRUE.  */
   if ($node->type != 'room_reservations_reservation' ||
