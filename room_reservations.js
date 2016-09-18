@@ -31,8 +31,12 @@ Drupal.behaviors.room_reservations.attach = function(context) {
       var val = $(this).attr('value').substring(5, end);
       var path = window.location.href;
       var loc = path.lastIndexOf('room_reservations');
-      var end = loc + 17;
-      var newpath = path.substring(0, end).concat('/');
+      if (loc != -1) {
+        var end = loc + 17;
+        var newpath = path.substring(0, end).concat('/');
+      } else {
+        var newpath = path.concat('/');
+      }
       window.location.href = newpath.concat(val);
     });
 
