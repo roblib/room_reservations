@@ -229,6 +229,10 @@ function room_reservations_permission() {
       'title' => t('Bypass minimum advanced booking limit.'),
       'description' => t('Bypass minimum advanced booking limit.'),
     ),    
+    'bypass reservations limiters' => array(
+      'title' => t('Bypass number of reservations limiters.'),
+      'description' => t('Bypass open reservations per user and reservations per day limits.'),
+    ),
     'book over buffer' => array(
       'title' => t('Allow booking over setup/takedown buffers.'),
       'description' => t('Allow user to book over top of the setup/takedown buffer for an existing reservation.'),
@@ -243,7 +247,6 @@ function room_reservations_permission() {
     ),
   );
 }
-
 
 /**
  * Implements hook_validate().
@@ -277,11 +280,17 @@ function room_reservations_validate($node, $form, &$form_state) {
     $yyyymmdd = date('Y-m-d', strtotime($year . '-' . arg(3) . '-' . arg(4)));
   }
 
-  if (_room_reservations_daily_max_exceeded($yyyymmdd)) {
-    form_error($form, t('You have exceeded your daily reservation limit.'));
+
+  if (user_access('bypass reservations limiters')) {
+    return;
   }
-  if (_room_reservations_user_max_exceeded()) {
-    form_error($form, t('You have exceeded your total number of reservations allowed.'));
+  else {
+    if (_room_reservations_daily_max_exceeded($yyyymmdd)) {
+      form_error($form, t('You have exceeded your daily reservation limit.'));
+    }
+    if (_room_reservations_user_max_exceeded()) {
+      form_error($form, t('You have exceeded your total number of reservations allowed.'));
+    }
   }
 }
 
