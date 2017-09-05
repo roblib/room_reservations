@@ -244,6 +244,47 @@ function room_reservations_permission() {
   );
 }
 
+
+/**
+ * Implements hook_validate().
+ */
+function room_reservations_validate($node, $form, &$form_state) {
+  // If this is not a room reservation or we are not actually creating a new
+  // node we don't need to check for max reservations so return TRUE.
+  if ($node->type != 'room_reservations_reservation' ||
+    $form_state['values']['op'] == 'Cancel Reservation' || !empty($node->nid)) {
+    return TRUE;
+  }
+  // TODO pull into a function as this code is duplicated here and in the form function.
+  if ($nid = $form['nid']['#value']) {
+    $res = $form['#node'];
+    $d = $res->reservation_date['und'][0]['value'];
+    $yyyymmdd = date('Y-m-d', strtotime($d));
+  }
+
+  // CREATE NEW.
+  else {
+    // Determine if this year or next year.
+    $yearnow = date('Y');
+    $absdaynow = date('z');
+    $absdaydefault = date('z', mktime(0, 0, 0, arg(3), arg(4), $yearnow));
+    if ($absdaynow > $absdaydefault) {
+      $year = $yearnow + 1;
+    }
+    else {
+      $year = $yearnow;
+    }
+    $yyyymmdd = date('Y-m-d', strtotime($year . '-' . arg(3) . '-' . arg(4)));
+  }
+
+  if (_room_reservations_daily_max_exceeded($yyyymmdd)) {
+    form_error($form, t('You have exceeded your daily reservation limit.'));
+  }
+  if (_room_reservations_user_max_exceeded()) {
+    form_error($form, t('You have exceeded your total number of reservations allowed.'));
+  }
+}
+
 /**
  * Implements hook_node_access()
  * 
@@ -327,10 +368,19 @@ function room_reservations_form_user_admin_permissions_alter(&$form, &$form_stat
   }
 }
 
-function room_reservations_form_room_reservations_reservation_node_form_alter(&$form, &$form_state) {
-  // params either passed in on url -  CREATE
-  // or pulled from node - EDIT
-  
+/**
+ * Description.
+ *
+ * @param mixed $form
+ *   $form
+ * @param mixed $form_state
+ *   $form_state
+ * @param mixed $form_id
+ *   $form_id
+ */
+function room_reservations_form_room_reservations_reservation_node_form_alter(&$form, &$form_state, $form_id) {
+  // Params either passed in on url -  CREATE or pulled from node - EDIT.
+  // EDIT.
   if (user_access('administer site configuration') && isset($_GET['edit']) && $_GET['edit'] == 'standard') {
     return;
   }
@@ -339,9 +389,9 @@ function room_reservations_form_room_reservations_reservation_node_form_alter(&$
   if ($nid = $form['nid']['#value']) {
     $res = $form['#node'];
     $rid = $res->reservation_room[LANGUAGE_NONE][0]['target_id'];
-    $d = $res->reservation_date[LANGUAGE_NONE][0]['value'];  
-    $yyyymmdd = date('Y-m-d', strtotime($d)); 
-    $t = $res->reservation_time[LANGUAGE_NONE][0]['value']; 
+    $d = $res->reservation_date[LANGUAGE_NONE][0]['value'];
+    $yyyymmdd = date('Y-m-d', strtotime($d));
+    $t = $res->reservation_time[LANGUAGE_NONE][0]['value'];
   }
   
   // CREATE NEW
@@ -374,16 +424,15 @@ function room_reservations_form_room_reservations_reservation_node_form_alter(&$
   $form['reservation_heading']['#markup'] = '
     <h2 class="reservation-h2">' . t('Reservation booking for') . ':</h2><div><strong>' . t('Room') . ': ' . $room->title . '</strong></div>
     <div><strong>' . t('Date') . ': ' . $date . '</strong></div>
-    <div><strong>' . t('Time') . ': ' . $time . '</strong></div>
-    <br>';
-  
-  // this used to be so much easier in D6.. ughh!!
+    <div><strong>' . t('Time') . ': ' . $time . '</strong></div><br/>';
+
   $form['reservation_room']['#access'] = 0;
   $form['reservation_date']['#access'] = 0;
   $form['reservation_time']['#access'] = 0;      
   $form['reservation_room'][LANGUAGE_NONE]['#default_value'] = $room->nid;
   
-  // Date fields are a major pita, setting default does nothing here; we need to carry this forward to the node_presave hook
+  // Date fields are a major pita, setting default does nothing here;
+  // we need to carry this forward to the node_presave hook
   $form['#node']->date_default = $d;
   $form['reservation_time'][LANGUAGE_NONE][0]['value']['#default_value'] = $t;
   
@@ -399,14 +448,17 @@ function room_reservations_form_room_reservations_reservation_node_form_alter(&$
   if ($nid) {
     $form['reservation_repeat_type']['#disabled'] = TRUE;
     $form['reservation_repeat_until']['#disabled'] = TRUE;
-    // not sur ewhy this was here; if req i dont think structrue during edit is correct here
+    // not sure why this was here; if req i don't think structure during edit is correct here
     /*
     if ($form['reservation_repeat_type'][LANGUAGE_NONE][0]['#value'] > 1) {
       $form['reservation_repeat_until'][LANGUAGE_NONE][0]['#value'] = $form['reservation_repeat_until'][LANGUAGE_NONE][0]['#default_value']['value'];
     }
     */
-    
-    // form alter is hit in/out of form so we alter only in so we dont show msgs after form is submitted - !count($form_state['input'])
+
+    $form['reservation_repeat_until']['und'][0]['#value'] = $form['reservation_repeat_until']['und'][0]['#default_value']['value'];
+
+    // Form alter is hit in/out of form so we alter only in so we don't show
+    // messages after form is submitted - !count($form_state['input']).
     if ($form['reservation_series_id'][LANGUAGE_NONE][0]['value']['#default_value'] && !count($form_state['input'])) {
       if (isset($_GET['single'])) {
         $series_link = l(t('Click here'), "node/$nid/edit");
@@ -420,14 +472,14 @@ function room_reservations_form_room_reservations_reservation_node_form_alter(&$
       }
     }
     
-    // and then parts that have to be here on both passes
+    // And then parts that have to be here on both passes.
     if ($form['reservation_series_id'][LANGUAGE_NONE][0]['value']['#default_value']) {
        if (isset($_GET['single'])) {
-        // relabel Delete to Cancel Reservation 
+        // Re-label Delete to Cancel Reservation.
         $form['actions']['delete']['#value'] = t('Cancel Reservation for This Day');
       }
       else {
-        // remove single node delete and add Delete Series button
+        // Remove single node delete and add Delete Series button.
         unset($form['actions']['delete']);
         $form['actions']['delete_series'] = array(
           '#type' => 'submit',
@@ -438,16 +490,16 @@ function room_reservations_form_room_reservations_reservation_node_form_alter(&$
       }     
     }
     
-    // and if not part of a series; let's change DELETE button
+    // And if not part of a series; let's change DELETE button.
     if (!$form['reservation_series_id'][LANGUAGE_NONE][0]['value']['#default_value']) {
       $form['actions']['delete']['#value'] = t('Cancel Reservation');
     }
   }
     
-  // always redirect back to reservations calendar page
+  // Always redirect back to reservations calendar page.
   $form['actions']['submit']['#submit'][] = 'return_to_reservations_page';
   
-  // limit valid lengths so we have no overlaps
+  // Limit valid lengths so we have no overlaps.
   $validlengths = _room_reservations_valid_lengths($rid, $yyyymmdd, $t);
   foreach ($validlengths as $length) {
     if ($length['is_valid']) {
@@ -466,17 +518,36 @@ function room_reservations_form_room_reservations_reservation_node_form_alter(&$
       ':input[name="reservation_repeat_type[und]"]' => array('!value' => '1'),
     ),
   );
-  
-  return;  
+
+  // CHANGE - empty return not needed.
+  // return;
 }
 
+/**
+ * Description.
+ *
+ * @param mixed $form
+ *   $form
+ * @param mixed $form_state
+ *   $form_state
+ * @param mixed $form_id
+ *   $form_id
+ */
 function room_reservations_form_node_delete_confirm_alter(&$form, &$form_state, $form_id) {
   if ($form['#node']->type == 'room_reservations_reservation') {
     $form['#submit'][] = 'return_to_reservations_page';
   }
-  return;
+
+  // CHANGE - empty return statement not needed here.
+  // return;
 }
 
+/**
+ * Description.
+ *
+ * @param mixed $node
+ *   $node
+ */
 function room_reservations_node_presave($node) {
   switch ($node->type) {
     case 'room_reservations_reservation':
@@ -487,10 +558,20 @@ function room_reservations_node_presave($node) {
   }
 }
 
+/**
+ * Description.
+ *
+ * @param mixed &$element
+ *   $element
+ * @param mixed $form_state
+ *   $form_state
+ * @param mixed &$context
+ *   $context
+ */
 function room_reservations_date_popup_process_alter(&$element, &$form_state, &$context) {
   if (isset($element['#field']['field_name'])) {
     switch ($element['#field']['field_name']) {
-      case 'reservation_repeat_until': {
+      case "reservation_repeat_until": {
         if (user_access('create room reservations extended')) {
           $advancedays = variable_get('room_reservations_advance_extended', 180);
         }
@@ -508,8 +589,17 @@ function room_reservations_date_popup_process_alter(&$element, &$form_state, &$c
   }
 }
 
+/**
+ * Description.
+ *
+ * @param mixed $form
+ *   $form
+ * @param mixed $form_state
+ *   $form_state
+ */
 function return_to_reservations_page($form, &$form_state) {
-  // can't set redirect here for DELETE function; see delete confirm form alter above
+  // Can't set redirect here for DELETE function;
+  // see delete confirm form alter above
   if ($form_state['clicked_button']['#id'] == 'edit-delete') {
     return;
   }
@@ -521,9 +611,9 @@ function return_to_reservations_page($form, &$form_state) {
   $catid = $room['reservations_room_category'][LANGUAGE_NONE][0]['target_id'];
   $category = $categories[$catid];
   $anchor = strtolower(preg_replace('/[^a-zA-Z0-9-]+/', '-', $category['title']));
-  
-  // need to handle both update and delete case
-  $date = $form['#node']->reservation_date[LANGUAGE_NONE][0]['value'] ? $form['#node']->reservation_date[LANGUAGE_NONE][0]['value'] : $form_state['values']['reservation_date'][LANGUAGE_NONE][0]['value'];
+
+  // Need to handle both update and delete case.
+  $date = (empty($form_state['values']['reservation_date'][LANGUAGE_NONE][0]['value'])) ? NULL : $form['#node']->reservation_date[LANGUAGE_NONE][0]['value'];
   if ($date) {
     $return = date('n/d', strtotime($date));
     $form_state['redirect'] = array('room_reservations/' . $return, array('fragment' => $anchor));
@@ -620,7 +710,6 @@ function room_reservations_mail($key, &$message, $params) {
 
 /**
  * Implements hook_cron().
-().
  */
 function xxxroom_reservations_cron() {
   // Send reservation reminders.

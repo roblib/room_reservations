@@ -1224,11 +1224,55 @@ function _room_reservations_daily_max_exceeded($yyyymmdd) {
     return FALSE;
   }
   global $user;
-  $record_count = 0;
-  if ($user->uid) {
-    $sql = "SELECT id FROM {room_reservations} WHERE user_name = :name AND date = :date AND deleted = 'N'";
-    $record_count = db_query($sql, array(':name' => $user->name, ':date' => $yyyymmdd))->rowCount();
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'room_reservations_reservation')
+    ->propertyCondition('uid', $user->uid)
+    ->fieldCondition('reservation_date', 'value', $yyyymmdd, '=');
+  $result = $query->execute();
+    if (isset($result['node'])) {
+      $rids = array_keys($result['node']);
+    }
+
+  $record_count = count($rids);
+
+
+  if ($record_count < $max) {
+    return FALSE;
   }
+  else {
+    return TRUE;
+  }
+}
+
+/**
+ * Determine if the user has exceeded the total maximum number of reservations.
+ *
+ * @global object $user
+ *   Drupal user object.
+ *
+ * @return bool
+ *   TRUE - the maximum has been exceeded.
+ *   FALSE - the maximum has not been exceeded.
+ */
+function _room_reservations_user_max_exceeded() {
+  $max = variable_get('room_reservations_reservations_per_user', 4);
+  if (!$max) {
+    return FALSE;
+  }
+  global $user;
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'room_reservations_reservation')
+    ->propertyCondition('uid', $user->uid);
+  $result = $query->execute();
+  if (isset($result['node'])) {
+    $rids = array_keys($result['node']);
+  }
+  $record_count = count($rids);
+
   if ($record_count < $max) {
     return FALSE;
   }
