@@ -55,8 +55,12 @@ function theme_room_reservations($variables) {
   // pass date format to JS
   $format = strtolower(variable_get('room_reservations_picker_format', 'y/m/d'));
   drupal_add_js(array('room_reservations' => array('dateformat' => $format)), 'setting');
-  
+
   extract($variables);
+
+  // $selected_category inside $variables isn't formed right to be pulled out as is with extract()
+  $selected_category = NULL;
+
   // User information.
   $full_access = FALSE;
   $user_login_name = NULL;
