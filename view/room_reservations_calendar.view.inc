@@ -184,7 +184,7 @@ function theme_room_reservations($variables) {
       $rid = $room['nid'];
       $room_name = $room['title'];
       $room_link = l($room_name, 'node/' . $rid);
-      $room_desc = $room['body'][LANGUAGE_NONE][0]['safe_value'];
+      $room_desc = $room['body'] ? $room['body'][LANGUAGE_NONE][0]['safe_value'] : "";
       
       // use qtip if we have it
       if (module_exists('qtip')) {
