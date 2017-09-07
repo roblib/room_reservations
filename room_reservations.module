@@ -324,7 +324,7 @@ function room_reservations_node_access($nodetype_or_node, $op, $account) {
       global $user;
       // if it is my reservation; do nothing (let Drupal handle as usual)
       if ((is_object($nodetype_or_node) && $nodetype_or_node->uid == $user->uid)) {
-        return NODE_ACCESS_IGNORE;
+        return NODE_ACCESS_ALLOW;
       }
       else {
         switch ($op) {
