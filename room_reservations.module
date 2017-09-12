@@ -265,6 +265,12 @@ function room_reservations_validate($node, $form, &$form_state) {
     $yyyymmdd = date('Y-m-d', strtotime($d));
   }
 
+  // Group name must be 25 characters or less.
+  if ($node->type == 'room_reservations_reservation' && strlen($node->title) > 25
+    && $form_state['values']['op'] == 'Save') {
+      form_error($form, t('Group name must be less than 25 characters.'));
+  }
+
   // CREATE NEW.
   else {
     // Determine if this year or next year.
