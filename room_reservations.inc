@@ -1235,7 +1235,7 @@ function _room_reservations_daily_max_exceeded($yyyymmdd) {
       $rids = array_keys($result['node']);
     }
 
-  $record_count = $rids ? count($rids) : 0;
+  $record_count = isset($rids) ? count($rids) : 0;
 
     if ($record_count < $max) {
     return FALSE;
@@ -1261,17 +1261,18 @@ function _room_reservations_user_max_exceeded() {
     return FALSE;
   }
   global $user;
-
+  $yyyymmdd = date('Y-m-d');
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'node')
     ->entityCondition('bundle', 'room_reservations_reservation')
-    ->propertyCondition('uid', $user->uid);
+    ->propertyCondition('uid', $user->uid)
+    ->fieldCondition('reservation_date', 'value', $yyyymmdd, '>=');
   $result = $query->execute();
   if (isset($result['node'])) {
     $rids = array_keys($result['node']);
   }
 
-  $record_count = $rids ? count($rids) : 0;
+  $record_count = isset($rids) ? count($rids) : 0;
 
   if ($record_count < $max) {
     return FALSE;
